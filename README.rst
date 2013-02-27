@@ -10,6 +10,9 @@ This scripts was written very quickly and will not support all YAML
 manipulation that you could have dreamed of. But it should support
 some handy basic query of YAML file.
 
+Please take a look at the next section to get a quick overview of
+``shyaml`` capabilities.
+
 
 Description
 ===========
@@ -18,6 +21,18 @@ Simple scripts that allow read access to YAML files through command line.
 
 This can be handy, if you want to get access to YAML data in your shell
 scripts.
+
+
+Installation
+============
+
+This script could be used out of the box, take the ``shyaml`` file and use it
+directly.
+
+If you want to use the distribution method I've chosen, which is ``distutils2``,
+please first make sure you have ``distutils2``, in which case you could do a:
+
+     pysetup install shyaml
 
 
 Usage
@@ -87,4 +102,14 @@ Useless fun::
     - first
     - second
     - third
+
+A Quick remainder of what is available::
+
+    $ shyaml
+    usage:
+        shyaml get-value KEY
+        shyaml get-type KEY
+        shyaml keys
+
+
 
