@@ -1,0 +1,39 @@
+
+CURRENT_FORMAT =  r'^([cC]hg|[fF]ix|[nN]ew)\s*:\s*((dev|use?r|pkg|test)\s*:\s*)?([^\n]*)$'
+
+unreleased_version_label = "%%version%% (unreleased)"
+
+ignore_regexps = [
+        r'@minor',
+        r'@cosmetic',
+        r'@refactor',
+  ]
+
+
+replace_regexps = {
+    ## current format (ie: 'chg: dev: my commit msg @tag1 @tag2')
+
+    r'^([cC]hg|[fF]ix|[nN]ew)\s*:\s*((dev|use?r|pkg|test)\s*:\s*)?([^\n@]*)(@[a-z]+\s+)*$':
+	r'\4',
+}
+
+
+section_regexps = (
+    ('New', [
+	r'^[nN]ew\s*:\s*((dev|use?r|pkg)\s*:\s*)?([^\n]*)$',
+     ]),
+    ('Changes', [
+        r'^[cC]hg\s*:\s*((dev|use?r|pkg)\s*:\s*)?([^\n]*)$',
+     ]),
+    ('Fix', [
+        r'^[fF]ix\s*:\s*((dev|use?r|pkg)\s*:\s*)?([^\n]*)$',
+     ]),
+
+    ('Other', None ## Match all lines
+     ),
+
+)
+
+body_split_regexp = r'\n(?=\w+\s*:)'
+
+tag_filter_regexp = r'^[0-9]+\.[0-9]+(\.[0-9]+)?$'
