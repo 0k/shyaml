@@ -52,7 +52,10 @@ def main(args):
         key_value = args[1]
         default = args[2] if len(args) > 2 else ""
         contents = yaml.load(sys.stdin)
-        value = mget(contents, key_value, default)
+        try:
+            value = mget(contents, key_value, default)
+        except KeyError, TypeError:
+            die("Error: invalid path %r." % key_value)
         if action == "get-value":
             if not isinstance(value, (basestring, int, float)):
                 value = yaml.dump(value, default_flow_style=False)
