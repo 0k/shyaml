@@ -96,6 +96,19 @@ Get sub YAML from a structure attribute::
     - second
     - third
 
+Query a list::
+
+   $ cat test.yaml | shyaml get-value subvalue.things
+   - first
+   - second
+   - third
+   $ cat test.yaml | shyaml get-value subvalue.things.0
+   first
+   $ cat test.yaml | shyaml get-value subvalue.things.-1
+   third
+   $ cat test.yaml | shyaml get-value subvalue.things.5
+   Error: list index error in path 'subvalue.things.5'.
+
 Useless fun::
 
     $ cat test.yaml | shyaml get-value subvalue | shyaml get-value things

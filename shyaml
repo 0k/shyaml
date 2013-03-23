@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+## Note: to launch test, you can use:
+##   python -m doctest -d shyaml.py
+## or
+##   nosetests
+
 import sys
 import yaml
 import os.path
@@ -16,16 +21,23 @@ def mget(dct, key, default=None):
     2
     >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.b")
     {'c': 2}
+    >>> mget({'a': {'x': [1, 5], 'b': {'c': 2}}}, "a.x.-1")
+    5
+    >>> mget({'a': {'x': 1, 'b': [{'c': 2}]}}, "a.b.0.c")
+    2
 
     >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.y", default='N/A')
     'N/A'
 
     """
     if not "." in key:
+        if isinstance(dct, list):
+            return dct[int(key)]
         return dct.get(key, default)
     else:
         head, tail = key.split(".", 1)
-        return mget(dct.get(head, {}), tail, default)
+        value = dct[int(head)] if isinstance(dct, list) else dct.get(head, {})
+        return mget(value, tail, default)
 
 
 def stderr(msg):
@@ -54,6 +66,8 @@ def main(args):
         contents = yaml.load(sys.stdin)
         try:
             value = mget(contents, key_value, default)
+        except IndexError:
+            die("Error: list index error in path %r." % key_value)
         except KeyError, TypeError:
             die("Error: invalid path %r." % key_value)
         if action == "get-value":
