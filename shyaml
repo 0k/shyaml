@@ -73,7 +73,7 @@ def main(args):
         if action == "get-value":
             if not isinstance(value, (basestring, int, float)):
                 value = yaml.dump(value, default_flow_style=False)
-            print value
+            print value,
             return 0
         else:  ## action == "get-type"
             print "struct" if isinstance(value, dict) else \
