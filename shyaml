@@ -30,6 +30,8 @@ def mget(dct, key, default=None):
     'N/A'
 
     """
+    if key == "":
+        return dct
     if not "." in key:
         if isinstance(dct, list):
             return dct[int(key)]
@@ -59,9 +61,7 @@ def main(args):
         die(usage, errlvl=0)
     action = args[0]
     if action in ["get-value", "get-type"]:
-        if len(args) == 1:
-            die("Error: you should specify a key")
-        key_value = args[1]
+        key_value = "" if len(args) == 1 else args[1]
         default = args[2] if len(args) > 2 else ""
         contents = yaml.load(sys.stdin)
         try:
