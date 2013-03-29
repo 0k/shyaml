@@ -38,8 +38,8 @@ please first make sure you have ``distutils2``, in which case you could do a:
 Usage
 =====
 
-``shyaml`` takes it YAML input file from standard input ONLY. So there are
-some sample routine.
+``shyaml`` takes its YAML input file from standard input ONLY. So there are
+some sample routine:
 
 Let's create a sample yaml file::
 
@@ -123,6 +123,4 @@ A Quick remainder of what is available::
         shyaml get-value KEY
         shyaml get-type KEY
         shyaml keys
-
-
 
