@@ -153,3 +153,12 @@ if [ "$?" != 0 ]; then
     print_error "Error while updating version information."
 fi
 
+
+if [ "$(which pysetup)" ]; then
+    rm -f setup.py
+    pysetup generate-setup
+else
+    echo "NOT generating 'setup.py' file as you do not have pysetup executable from distutils2."
+fi
+
+
