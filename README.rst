@@ -30,9 +30,20 @@ This script could be used out of the box, take the ``shyaml`` file and use it
 directly.
 
 If you want to use the distribution method I've chosen, which is ``distutils2``,
-please first make sure you have ``distutils2``, in which case you could do a:
+please first make sure you have ``distutils2``, in which case you could do a::
 
-     pysetup install shyaml
+    pysetup install shyaml
+
+It should be compatible with older distribution method, so this should also
+work::
+
+    pip install shyaml
+
+Please note that if you got the code thanks to git. You'll need to execute
+``./autogen.sh`` in order to generate missing files as the ``CHANGELOG.rst``
+and the ``setup.py``. Then you can choose to directly use the ``shyaml``
+binary, or install it thanks to classical ``pysetup install``
+(or ``python setup.py``).
 
 
 Usage
