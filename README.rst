@@ -84,7 +84,7 @@ Get type of attributes::
 
     $ cat test.yaml | shyaml get-type name
     str
-    $ cat test.yaml | shyaml get-value subvalue.how-much
+    $ cat test.yaml | shyaml get-type subvalue.how-much
     float
 
 Get sub YAML from a structure attribute::
