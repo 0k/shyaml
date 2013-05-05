@@ -9,11 +9,13 @@ import sys
 import os.path
 
 from .yaml_parser import Yaml
+from .json_parser import Json
 from .common import stdout, die, mget
 
 EXNAME = os.path.basename(sys.argv[0])
 
 parser = {
+    'json': Json,
     'yaml': Yaml
     }
 
