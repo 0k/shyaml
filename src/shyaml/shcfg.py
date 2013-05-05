@@ -6,77 +6,38 @@
 ##   nosetests
 
 import sys
-import yaml
 import os.path
+
+from .yaml_parser import Yaml
+from .common import stdout, die, mget
 
 EXNAME = os.path.basename(sys.argv[0])
 
+parser = {
+    'yaml': Yaml
+    }
 
-def mget(dct, key, default=None):
-    """Allow to get values deep in a dict with doted keys.
-
-    >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.x")
-    1
-    >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.b.c")
-    2
-    >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.b")
-    {'c': 2}
-    >>> mget({'a': {'x': [1, 5], 'b': {'c': 2}}}, "a.x.-1")
-    5
-    >>> mget({'a': {'x': 1, 'b': [{'c': 2}]}}, "a.b.0.c")
-    2
-
-    >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.y", default='N/A')
-    'N/A'
-
-    """
-    if key == "":
-        return dct
-    if not "." in key:
-        if isinstance(dct, list):
-            return dct[int(key)]
-        return dct.get(key, default)
-    else:
-        head, tail = key.split(".", 1)
-        value = dct[int(head)] if isinstance(dct, list) else dct.get(head, {})
-        return mget(value, tail, default)
+def select_parser():
+    for key, value in parser.iteritems():
+        if EXNAME.endswith(key):
+            return value
+    return parser['yaml']
 
 
-def stderr(msg):
-    sys.stderr.write(msg + "\n")
+def main(args, Parser):
+    load = Parser.load
+    dump = Parser.dump
 
-
-def die(msg, errlvl=1, prefix="Error: "):
-    stderr("%s%s" % (prefix, msg))
-    sys.exit(errlvl)
-
-SIMPLE_TYPES = (basestring, int, float)
-COMPLEX_TYPES = (list, dict)
-
-
-def dump(value):
-    return value if isinstance(value, SIMPLE_TYPES) \
-      else yaml.dump(value, default_flow_style=False)
-
-def type_name(value):
-    """Returns pseudo-YAML type name of given value."""
-    return "struct" if isinstance(value, dict) else \
-          "sequence" if isinstance(value, (tuple, list)) else \
-          type(value).__name__
-
-def stdout(value):
-    sys.stdout.write(value)
-
-def main(args):
     usage = """usage:
-    %(exname)s {get-value{,-0},get-type,keys{,-0},values{,-0}} KEY DEFAULT
+    %(exname)s {get-value{,-0},get-type,keys{,-0},values{,-0}} KEY [DEFAULT]
     """ % {"exname": EXNAME}
+
     if len(args) == 0:
         die(usage, errlvl=0, prefix="")
     action = args[0]
     key_value = "" if len(args) == 1 else args[1]
     default = args[2] if len(args) > 2 else ""
-    contents = yaml.load(sys.stdin)
+    contents = load(sys.stdin)
     try:
         value = mget(contents, key_value, default)
     except IndexError:
@@ -84,7 +45,7 @@ def main(args):
     except KeyError, TypeError:
         die("invalid path %r." % key_value)
 
-    tvalue = type_name(value)
+    tvalue = Parser.type_name(value)
     termination = "\0" if action.endswith("-0") else "\n"
 
     if action == "get-value":
@@ -115,5 +76,9 @@ def main(args):
         die("Invalid argument.\n%s" % usage)
 
 
+def run():
+    sys.exit(main(sys.argv[1:], select_parser()))
+
+
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    run()
