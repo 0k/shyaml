@@ -32,7 +32,7 @@ def mget(dct, key, default=None):
     """
     if key == "":
         return dct
-    if not "." in key:
+    if key in dct or not "." in key:
         if isinstance(dct, list):
             return dct[int(key)]
         return dct.get(key, default)
