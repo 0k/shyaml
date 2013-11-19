@@ -13,26 +13,65 @@ EXNAME = os.path.basename(sys.argv[0])
 
 
 def mget(dct, key, default=None):
-    """Allow to get values deep in a dict with doted keys (use \. to access keys with .'s) 
+    r"""Allow to get values deep in a dict with doted keys
 
-    >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.x")
-    1
-    >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.b.c")
-    2
-    >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.b")
-    {'c': 2}
-    >>> mget({'a': {'x': [1, 5], 'b': {'c': 2}}}, "a.x.-1")
-    5
-    >>> mget({'a': {'x': 1, 'b': [{'c': 2}]}}, "a.b.0.c")
-    2
+    Accessing leaf values is quite straightforward:
+    
+        >>> dct = {'a': {'x': 1, 'b': {'c': 2}}}
+        >>> mget(dct, 'a.x')
+        1
+        >>> mget(dct, 'a.b.c')
+        2
 
-    >>> mget({'a': {'x': 1, 'b': {'c': 2}}, 'a.x': 3 }, "a.x")
-    1
-    >>> mget({'a': {'x': 1, 'b': {'c': 2}}, 'a.x': 3 }, r"a\.x")
-    3
+    But you can also get subdict if your key is not targeting a
+    leaf value:
+    
+        >>> mget(dct, 'a.b')
+        {'c': 2}
 
-    >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.y", default='N/A')
-    'N/A'
+    As a special feature, list access is also supported by providing a
+    (possibily signed) integer, it'll be interpreted as usual python
+    sequence access using bracket notation:
+    
+        >>> mget({'a': {'x': [1, 5], 'b': {'c': 2}}}, 'a.x.-1')
+        5
+        >>> mget({'a': {'x': 1, 'b': [{'c': 2}]}}, 'a.b.0.c')
+        2
+    
+    Keys that contains '.' can be accessed by escaping them:
+    
+        >>> dct = {'a': {'x': 1}, 'a.x': 3, 'a.y': 4}
+        >>> mget(dct, 'a.x')
+        1
+        >>> mget(dct, r'a\.x')
+        3
+        >>> mget(dct, r'a.y')
+        >>> mget(dct, r'a\.y')
+        4
+
+    As a consequence, if your key contains a '\', you should also escape it:
+
+        >>> dct = {r'a\x': 3, r'a\.x': 4, 'a.x': 5, 'a\\': {'x': 6}}
+        >>> mget(dct, r'a\\x')
+        3
+        >>> mget(dct, r'a\\\.x')
+        4
+        >>> mget(dct, r'a\\.x')
+        6
+        >>> mget({'a\\': {'b': 1}}, r'a\\.b')
+        1
+    
+    mget support also default value if the key is not found:
+  
+        >>> mget({'a': 1}, 'b.y', default='N/A')
+        'N/A'
+
+    but will complain if you are trying to get into a leaf:
+    
+        >>> mget({'a': 1}, 'a.y', default='N/A')  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'int' object has no attribute 'get'
 
     """
     if key == "":
