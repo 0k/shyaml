@@ -8,12 +8,13 @@
 import sys
 import yaml
 import os.path
+import re
 
 EXNAME = os.path.basename(sys.argv[0])
 
 
 def mget(dct, key, default=None):
-    """Allow to get values deep in a dict with doted keys.
+    """Allow to get values deep in a dict with doted keys (use \. to access keys with .'s) 
 
     >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.x")
     1
@@ -26,21 +27,47 @@ def mget(dct, key, default=None):
     >>> mget({'a': {'x': 1, 'b': [{'c': 2}]}}, "a.b.0.c")
     2
 
+    >>> mget({'a': {'x': 1, 'b': {'c': 2}}, 'a.x': 3 }, "a.x")
+    1
+    >>> mget({'a': {'x': 1, 'b': {'c': 2}}, 'a.x': 3 }, r"a\.x")
+    3
+
     >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.y", default='N/A')
     'N/A'
 
     """
     if key == "":
         return dct
-    if not "." in key:
-        if isinstance(dct, list):
-            return dct[int(key)]
-        return dct.get(key, default)
+    if '\\' in key:
+    	key = replacespecialchars(key)
+        return simpleget(dct, key, default)
+    elif not "." in key:
+        return simpleget(dct, key, default)
     else:
         head, tail = key.split(".", 1)
         value = dct[int(head)] if isinstance(dct, list) else dct.get(head, {})
         return mget(value, tail, default)
 
+
+def replacespecialchars(key):
+    """Replace \\ with actual \\ and \. with actual .
+    We first replace the \\ with a marker and to use it later
+    Next we get \. and replace them with .
+    Get the marker and replace it with \
+    >>> replacespecialchars('a')
+    'a'
+    >>> replacespecialchars(r"a\.a")
+    'a.a'
+    """
+    key = re.sub(r"\\\\", 'ESCAPE_MARKER____', key)
+    key = re.sub(r"\\.", '.', key)
+    key = re.sub("ESCAPE_MARKER____", '\\\\', key)  
+    return key
+
+def simpleget(dct, key, default=None):
+    if isinstance(dct, list):
+        return dct[int(key)]
+    return dct.get(key, default)
 
 def stderr(msg):
     sys.stderr.write(msg + "\n")
