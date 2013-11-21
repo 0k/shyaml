@@ -217,6 +217,25 @@ This last one didn't escape correctly the last ``.``::
     $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\\.more' default
     1.4
 
+Null Keys
+---------
+
+Yep, ``shyaml`` supports empty stringed keys. You might never have use
+for this one, but it's in YAML specification. So ``shyaml`` supports it.
+
+    $ cat <<EOF > test.yaml
+    empty-sub-key:
+        "":
+           a: foo
+           "": bar
+    "": wiz
+    EOF
+
+    $ cat test.yaml | shyaml get-value empty-sub-key..
+    bar
+    $ cat test.yaml | shyaml get-value ''
+    wiz
+
 Usage string
 ------------
 
