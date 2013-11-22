@@ -194,8 +194,9 @@ if they are complex, you can re-use ``shyaml`` on them to parse their content.
 Keys containing '.'
 -------------------
 
-Use and '\\' to access keys with '\' and '\.' to access keys with literal '.' in them. Just be
-mindful of shell escaping (example uses single quotes)::
+Use and ``\\`` to access keys with ``\`` and ``\.`` to access keys
+with literal ``.`` in them. Just be mindful of shell escaping (example
+uses single quotes)::
 
     $ cat test.yaml | shyaml get-value 'subvalue\.how-much'
     1.2
@@ -204,7 +205,8 @@ mindful of shell escaping (example uses single quotes)::
     $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\.more' default
     default
 
-This last one didn't escape correctly the last ``.``, this is the correct version::
+This last one didn't escape correctly the last ``.``, this is the
+correct version::
 
     $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\\.more' default
     1.4
@@ -214,7 +216,8 @@ empty string keys
 -----------------
 
 Yep, ``shyaml`` supports empty stringed keys. You might never have use
-for this one, but it's in YAML specification. So ``shyaml`` supports it::
+for this one, but it's in YAML specification. So ``shyaml`` supports
+it::
 
     $ cat <<EOF > test.yaml
     empty-sub-key:
