@@ -3,17 +3,6 @@ SHYAML: YAML for the command line
 =================================
 
 
-Disclaimer
-==========
-
-This scripts was written very quickly and will not support all YAML
-manipulation that you could have dreamed of. But it should support
-some handy basic query of YAML file.
-
-Please take a look at the next section to get a quick overview of
-``shyaml`` capabilities.
-
-
 Description
 ===========
 
@@ -21,6 +10,10 @@ Simple scripts that allow read access to YAML files through command line.
 
 This can be handy, if you want to get access to YAML data in your shell
 scripts.
+
+This scripts supports only read access and it might not support all
+the subtilties of YAML specification. But it should support some handy
+basic query of YAML file.
 
 
 Installation
@@ -82,7 +75,7 @@ Simple query of simple attribute::
     $ cat test.yaml | shyaml get-value name
     MyName !!
 
-Query nested attributes::
+Query nested attributes by using '.' between key labels::
 
     $ cat test.yaml | shyaml get-value subvalue.how-much
     1.1
@@ -133,7 +126,6 @@ Iteration through keys only (\0 terminated strings)::
     VALUE: maintainer
     VALUE: description
 
-
 Iteration though values only (\0 terminated string highly recommended)::
 
     $ cat test.yaml | shyaml values-0 | \
@@ -154,7 +146,7 @@ Iteration though values only (\0 terminated string highly recommended)::
 Parse sequence
 --------------
 
-Query a sequence::
+Query a sequence with ``get-value``::
 
    $ cat test.yaml | shyaml get-value subvalue.things
    - first
@@ -167,7 +159,7 @@ Query a sequence::
    $ cat test.yaml | shyaml get-value subvalue.things.5
    Error: list index error in path 'subvalue.things.5'.
 
-More usefull, parse a list in one go::
+More usefull, parse a list in one go with ``get-values``::
 
    $ cat test.yaml | shyaml get-values subvalue.things
    first
@@ -212,16 +204,17 @@ mindful of shell escaping (example uses single quotes)::
     $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\.more' default
     default
 
-This last one didn't escape correctly the last ``.``::
+This last one didn't escape correctly the last ``.``, this is the correct version::
 
     $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\\.more' default
     1.4
 
-Null Keys
----------
+
+empty string keys
+-----------------
 
 Yep, ``shyaml`` supports empty stringed keys. You might never have use
-for this one, but it's in YAML specification. So ``shyaml`` supports it.
+for this one, but it's in YAML specification. So ``shyaml`` supports it::
 
     $ cat <<EOF > test.yaml
     empty-sub-key:
@@ -235,6 +228,7 @@ for this one, but it's in YAML specification. So ``shyaml`` supports it.
     bar
     $ cat test.yaml | shyaml get-value ''
     wiz
+
 
 Usage string
 ------------
