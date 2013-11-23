@@ -2,6 +2,11 @@
 SHYAML: YAML for the command line
 =================================
 
+.. image:: https://pypip.in/v/shyaml/badge.png
+    :target: https://pypi.python.org/pypi/shyaml
+
+.. image:: https://secure.travis-ci.org/0k/shyaml.png?branch=master
+    :target: http://travis-ci.org/0k/shyaml
 
 Description
 ===========
