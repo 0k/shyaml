@@ -5,6 +5,8 @@
 ## or
 ##   nosetests
 
+from __future__ import print_function
+
 import sys
 import yaml
 import os.path
@@ -27,7 +29,7 @@ def tokenize(s):
     
     So dot of slashes can be contained in token:
 
-        >>> print '\n'.join(tokenize(r'foo.dot<\.>.slash<\\>'))
+        >>> print('\n'.join(tokenize(r'foo.dot<\.>.slash<\\>')))
         foo
         dot<.>
         slash<\>
@@ -43,7 +45,7 @@ def tokenize(s):
     ## an empty string superfluous token is added after all non-empty string token:
     for token in tokens:
         if len(token) != 0:
-            tokens.next()
+            next(tokens)
         yield token
 
 
@@ -121,7 +123,7 @@ def mget(dct, key, default=None):
         >>> mget({'a': 1}, 'a.y', default='N/A')  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        TypeError: 'int' object is not subscriptable
+        TypeError: 'int' object ...
 
     """
     return aget(dct, tokenize(key), default)
@@ -146,7 +148,7 @@ def aget(dct, key, default=None):
     """
     key = iter(key)
     try:
-        head = key.next()
+        head = next(key)
     except StopIteration:
         return dct
     try:
@@ -164,7 +166,7 @@ def die(msg, errlvl=1, prefix="Error: "):
     stderr("%s%s" % (prefix, msg))
     sys.exit(errlvl)
 
-SIMPLE_TYPES = (basestring, int, float)
+SIMPLE_TYPES = (str, int, float)
 COMPLEX_TYPES = (list, dict)
 
 
@@ -195,14 +197,14 @@ def main(args):
         value = mget(contents, key_value, default)
     except IndexError:
         die("list index error in path %r." % key_value)
-    except KeyError, TypeError:
+    except (KeyError, TypeError):
         die("invalid path %r." % key_value)
 
     tvalue = type_name(value)
     termination = "\0" if action.endswith("-0") else "\n"
 
     if action == "get-value":
-        print dump(value),
+        print(dump(value), end='')
     elif action in ("get-values", "get-values-0"):
         if isinstance(value, dict):
             for k, v in value.iteritems():
@@ -216,7 +218,7 @@ def main(args):
                 "Please provide or select a sequence or struct."
                 % (action, tvalue))
     elif action == "get-type":
-        print tvalue
+        print(tvalue)
     elif action in ("keys", "keys-0", "values", "values-0"):
         if isinstance(value, dict):
             method = value.keys if action.startswith("keys") else value.values
