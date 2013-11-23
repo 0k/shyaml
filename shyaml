@@ -13,7 +13,7 @@ EXNAME = os.path.basename(sys.argv[0])
 
 
 def mget(dct, key, default=None):
-    """Allow to get values deep in a dict with doted keys.
+    """Allow to get values deep in a dict with doted keys (use \. to access keys with .'s) 
 
     >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.x")
     1
@@ -25,6 +25,11 @@ def mget(dct, key, default=None):
     5
     >>> mget({'a': {'x': 1, 'b': [{'c': 2}]}}, "a.b.0.c")
     2
+
+    >>> mget({'a': {'x': 1, 'b': {'c': 2}}, 'a.x': 3 }, "a.x")
+    1
+    >>> mget({'a': {'x': 1, 'b': {'c': 2}}, 'a.x': 3 }, r"a\.x")
+    3
 
     >>> mget({'a': {'x': 1, 'b': {'c': 2}}}, "a.y", default='N/A')
     'N/A'

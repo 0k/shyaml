@@ -68,6 +68,9 @@ Let's create a sample yaml file::
             Multiline description:
             Line 1
             Line 2
+    subvalue.how-much: 1.2
+    subvalue.how-much\more: 1.3
+    subvalue.how-much\.more: 1.4
     EOF
 
 
@@ -195,6 +198,24 @@ values for ``sequence`` types::
 You should also notice that values that are displayed are YAML compatible. So
 if they are complex, you can re-use ``shyaml`` on them to parse their content.
 
+
+Keys containing '.'
+-------------------
+
+Use and '\\' to access keys with '\' and '\.' to access keys with literal '.' in them. Just be
+mindful of shell escaping (example uses single quotes)::
+
+    $ cat test.yaml | shyaml get-value 'subvalue\.how-much'
+    1.2
+    $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\more'
+    1.3
+    $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\.more' default
+    default
+
+This last one didn't escape correctly the last ``.``::
+
+    $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\\.more' default
+    1.4
 
 Usage string
 ------------
