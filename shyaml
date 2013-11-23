@@ -8,8 +8,43 @@
 import sys
 import yaml
 import os.path
+import re
 
 EXNAME = os.path.basename(sys.argv[0])
+
+
+def tokenize(s):
+    r"""Returns an iterable in all subpart of a '.' separated string 
+
+    So:
+    
+        >>> list(tokenize('foo.bar.wiz'))
+        ['foo', 'bar', 'wiz']
+    
+    this function has to deal with any type of data in the string. So it
+    actually interprets the string. Characters with meaning are '.' and '\'.
+    Both of these can be included in a token by quoting them with '\'.
+    
+    So dot of slashes can be contained in token:
+
+        >>> print '\n'.join(tokenize(r'foo.dot<\.>.slash<\\>'))
+        foo
+        dot<.>
+        slash<\>
+
+    Notice that empty keys are also supported:
+
+        >>> list(tokenize(r'foo..bar'))
+        ['foo', '', 'bar']
+
+    """
+    tokens = (re.sub(r'\\(\\|\.)', r'\1', m.group(0))
+              for m in re.finditer(r'((\\.|[^.\\])*)', s))
+    ## an empty string superfluous token is added after all non-empty string token:
+    for token in tokens:
+        if len(token) != 0:
+            tokens.next()
+        yield token
 
 
 def mget(dct, key, default=None):
@@ -60,6 +95,21 @@ def mget(dct, key, default=None):
         6
         >>> mget({'a\\': {'b': 1}}, r'a\\.b')
         1
+        >>> mget({r'a.b\.c': 1}, r'a\.b\\\.c')
+        1
+
+    And even empty strings key are supported:
+
+        >>> dct = {r'a': {'': {'y': 3}, 'y': 4}, 'b': {'': {'': 1}}, '': 2}
+        >>> mget(dct, r'a..y')
+        3
+        >>> mget(dct, r'a.y')
+        4
+        >>> mget(dct, r'')
+        2
+        >>> mget(dct, r'b..')
+        1
+
     
     mget support also default value if the key is not found:
   
@@ -71,19 +121,39 @@ def mget(dct, key, default=None):
         >>> mget({'a': 1}, 'a.y', default='N/A')  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        AttributeError: 'int' object has no attribute 'get'
+        TypeError: 'int' object is not subscriptable
 
     """
-    if key == "":
+    return aget(dct, tokenize(key), default)
+
+
+def aget(dct, key, default=None):
+    r"""Allow to get values deep in a dict with iterable keys
+
+    Accessing leaf values is quite straightforward:
+    
+        >>> dct = {'a': {'x': 1, 'b': {'c': 2}}}
+        >>> aget(dct, ('a', 'x'))
+        1
+        >>> aget(dct, ('a', 'b', 'c'))
+        2
+
+    If key is empty, it returns unchanged the ``dct`` value.
+
+        >>> aget({'x': 1}, ())
+        {'x': 1}
+
+    """
+    key = iter(key)
+    try:
+        head = key.next()
+    except StopIteration:
         return dct
-    if not "." in key:
-        if isinstance(dct, list):
-            return dct[int(key)]
-        return dct.get(key, default)
-    else:
-        head, tail = key.split(".", 1)
-        value = dct[int(head)] if isinstance(dct, list) else dct.get(head, {})
-        return mget(value, tail, default)
+    try:
+        value = dct[int(head)] if isinstance(dct, list) else dct[head]
+    except KeyError:
+        return default
+    return aget(value, key, default)
 
 
 def stderr(msg):
