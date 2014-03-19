@@ -81,7 +81,7 @@ function die() {
 ## Code
 ##
 
-depends git sed grep date gitchangelog
+depends git sed grep date
 
 if ! test -e "setup.cfg" >/dev/null 2>&1; then
     die "No 'setup.cfg'... this script is meant to work with a python project"
