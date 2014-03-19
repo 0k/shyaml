@@ -39,7 +39,19 @@ def tokenize(s):
         >>> list(tokenize(r'foo..bar'))
         ['foo', '', 'bar']
 
+    Given an empty string:
+
+        >>> list(tokenize(r''))
+        ['']
+
+    And a None value:
+
+        >>> list(tokenize(None))
+        []
+
     """
+    if s is None:
+        raise StopIteration
     tokens = (re.sub(r'\\(\\|\.)', r'\1', m.group(0))
               for m in re.finditer(r'((\\.|[^.\\])*)', s))
     ## an empty string superfluous token is added after all non-empty string token:
@@ -124,6 +136,11 @@ def mget(dct, key, default=None):
         ...
         TypeError: 'int' object ...
 
+    if the key is None, the whole dct should be sent back:
+
+        >>> mget({'a': 1}, None)
+        {'a': 1}
+
     """
     return aget(dct, tokenize(key), default)
 
@@ -189,7 +206,7 @@ def main(args):
     if len(args) == 0:
         die(usage, errlvl=0, prefix="")
     action = args[0]
-    key_value = "" if len(args) == 1 else args[1]
+    key_value = None if len(args) == 1 else args[1]
     default = args[2] if len(args) > 2 else ""
     contents = yaml.load(sys.stdin)
     try:

@@ -237,6 +237,24 @@ it::
     $ cat test.yaml | shyaml get-value ''
     wiz
 
+Please notice that one empty string is different than no string at all::
+
+    $ cat <<EOF > test.yaml
+    "":
+       a: foo
+       b: bar
+    "x": wiz
+    EOF
+    $ cat test.yaml | shyaml keys
+
+    x
+    $ cat test.yaml | shyaml keys ''
+    a
+    b
+
+The first asks for keys of the root YAML, the second asks for keys of the
+content of the empty string named element located in the root YAML.
+
 
 Usage string
 ------------
