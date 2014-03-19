@@ -16,17 +16,17 @@ EXNAME = os.path.basename(sys.argv[0])
 
 
 def tokenize(s):
-    r"""Returns an iterable in all subpart of a '.' separated string 
+    r"""Returns an iterable in all subpart of a '.' separated string
 
     So:
-    
+
         >>> list(tokenize('foo.bar.wiz'))
         ['foo', 'bar', 'wiz']
-    
+
     this function has to deal with any type of data in the string. So it
     actually interprets the string. Characters with meaning are '.' and '\'.
     Both of these can be included in a token by quoting them with '\'.
-    
+
     So dot of slashes can be contained in token:
 
         >>> print('\n'.join(tokenize(r'foo.dot<\.>.slash<\\>')))
@@ -53,7 +53,7 @@ def mget(dct, key, default=None):
     r"""Allow to get values deep in a dict with doted keys
 
     Accessing leaf values is quite straightforward:
-    
+
         >>> dct = {'a': {'x': 1, 'b': {'c': 2}}}
         >>> mget(dct, 'a.x')
         1
@@ -62,21 +62,21 @@ def mget(dct, key, default=None):
 
     But you can also get subdict if your key is not targeting a
     leaf value:
-    
+
         >>> mget(dct, 'a.b')
         {'c': 2}
 
     As a special feature, list access is also supported by providing a
     (possibily signed) integer, it'll be interpreted as usual python
     sequence access using bracket notation:
-    
+
         >>> mget({'a': {'x': [1, 5], 'b': {'c': 2}}}, 'a.x.-1')
         5
         >>> mget({'a': {'x': 1, 'b': [{'c': 2}]}}, 'a.b.0.c')
         2
-    
+
     Keys that contains '.' can be accessed by escaping them:
-    
+
         >>> dct = {'a': {'x': 1}, 'a.x': 3, 'a.y': 4}
         >>> mget(dct, 'a.x')
         1
@@ -112,14 +112,13 @@ def mget(dct, key, default=None):
         >>> mget(dct, r'b..')
         1
 
-    
     mget support also default value if the key is not found:
-  
+
         >>> mget({'a': 1}, 'b.y', default='N/A')
         'N/A'
 
     but will complain if you are trying to get into a leaf:
-    
+
         >>> mget({'a': 1}, 'a.y', default='N/A')  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
@@ -133,7 +132,7 @@ def aget(dct, key, default=None):
     r"""Allow to get values deep in a dict with iterable keys
 
     Accessing leaf values is quite straightforward:
-    
+
         >>> dct = {'a': {'x': 1, 'b': {'c': 2}}}
         >>> aget(dct, ('a', 'x'))
         1
