@@ -10,6 +10,7 @@ from __future__ import print_function
 import sys
 import yaml
 import os.path
+import os
 import re
 
 EXNAME = os.path.basename(sys.argv[0])
@@ -188,13 +189,17 @@ COMPLEX_TYPES = (list, dict)
 
 def dump(value):
     return value if isinstance(value, SIMPLE_TYPES) \
-      else yaml.dump(value, default_flow_style=False)
+      else yaml.safe_dump(value, default_flow_style=False)
 
 def type_name(value):
     """Returns pseudo-YAML type name of given value."""
     return "struct" if isinstance(value, dict) else \
           "sequence" if isinstance(value, (tuple, list)) else \
           type(value).__name__
+
+def env_var_constructor(loader,node):
+  line = loader.construct_scalar(node)
+  return str(re.sub(r'\$\{?(\w+)\}?',lambda m: os.environ.get(m.group(1),''), line))
 
 def stdout(value):
     sys.stdout.write(value)
@@ -205,6 +210,10 @@ def main(args):
     """ % {"exname": EXNAME}
     if len(args) == 0:
         die(usage, errlvl=0, prefix="")
+
+    yaml.add_implicit_resolver("!env_vars", re.compile(r'\$\{?\w+\}?'))
+    yaml.add_constructor('!env_vars', env_var_constructor)
+
     action = args[0]
     key_value = None if len(args) == 1 else args[1]
     default = args[2] if len(args) > 2 else ""
