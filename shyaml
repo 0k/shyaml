@@ -201,7 +201,7 @@ def stdout(value):
 
 def main(args):
     usage = """usage:
-    %(exname)s {get-value{,-0},get-type,keys{,-0},values{,-0}} KEY DEFAULT
+    %(exname)s {get-value{,-0},get-type,keys{,-0},values{,-0}} KEY [DEFAULT]
     """ % {"exname": EXNAME}
     if len(args) == 0:
         die(usage, errlvl=0, prefix="")

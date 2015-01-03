@@ -269,5 +269,5 @@ A Quick remainder of what is available::
 
     $ shyaml
     usage:
-        shyaml {get-value{,-0},get-type,keys{,-0},values{,-0}} KEY DEFAULT
+        shyaml {get-value{,-0},get-type,keys{,-0},values{,-0}} KEY [DEFAULT]
 
