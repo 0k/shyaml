@@ -119,8 +119,11 @@ Get sub YAML from a structure attribute::
 Iteration through keys only::
 
     $ cat test.yaml | shyaml keys
+    subvalue.how-much
     subvalue
+    subvalue.how-much\.more
     name
+    subvalue.how-much\more
 
 Iteration through keys only (\0 terminated strings)::
 
@@ -133,7 +136,7 @@ Iteration through keys only (\0 terminated strings)::
 
 Iteration though values only (\0 terminated string highly recommended)::
 
-    $ cat test.yaml | shyaml values-0 | \
+    $ cat test.yaml | shyaml values-0 subvalue |
       while read -r -d $'\0' value; do
           echo "RECEIVED: '$value'"
       done
@@ -178,19 +181,22 @@ character. Hopefully, ``shyaml`` has a ``get-values-0`` to terminate strings by
 YAML.  ``get-values`` outputs key and values for ``struct`` types and only
 values for ``sequence`` types::
 
-    $ cat test.yaml | shyaml get-values-0 subvalue | \
-      while read -r -d $'\0' key value; do
+    $ cat test.yaml | shyaml get-values-0 subvalue |
+      while IFS='' read -r -d '' key &&
+            IFS='' read -r -d '' value; do
           echo "'$key' -> '$value'"
       done
     'how-much' -> '1.1'
     'things' -> '- first
     - second
-    - third'
+    - third
+    '
     'how-many' -> '2'
     'maintainer' -> 'Valentin Lab'
     'description' -> 'Multiline description:
     Line 1
-    Line 2'
+    Line 2
+    '
 
 You should also notice that values that are displayed are YAML compatible. So
 if they are complex, you can re-use ``shyaml`` on them to parse their content.
