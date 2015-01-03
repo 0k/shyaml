@@ -134,7 +134,7 @@ Iteration through keys only (\0 terminated strings)::
     VALUE: maintainer
     VALUE: description
 
-Iteration though values only (\0 terminated string highly recommended)::
+Iteration through values only (\0 terminated string highly recommended)::
 
     $ cat test.yaml | shyaml values-0 subvalue |
       while read -r -d $'\0' value; do
