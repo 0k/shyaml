@@ -165,7 +165,7 @@ Query a sequence with ``get-value``::
    $ cat test.yaml | shyaml get-value subvalue.things.-1
    third
    $ cat test.yaml | shyaml get-value subvalue.things.5
-   Error: list index error in path 'subvalue.things.5'.
+   Error: invalid path 'subvalue.things.5', index 5 is out of range (3 elements in sequence).
 
 More usefull, parse a list in one go with ``get-values``::
 
@@ -280,7 +280,7 @@ an error message will be printed::
    mydefault
 
    $ echo "a: 3" | shyaml get-value b
-   Error: invalid path 'b'.
+   Error: invalid path 'b', missing key 'b' in struct.
 
 
 You can emulate pre v0.3 behavior by specifying explicitely an empty

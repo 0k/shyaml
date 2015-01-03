@@ -94,10 +94,10 @@ def mget(dct, key):
         1
         >>> mget(dct, r'a\.x')
         3
-        >>> mget(dct, r'a.y')  ## doctest: +ELLIPSIS
+        >>> mget(dct, r'a.y')  ## doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ...
-        KeyError: 'y'
+        MissingKeyError: missing key 'y' in dict.
         >>> mget(dct, r'a\.y')
         4
 
@@ -129,10 +129,10 @@ def mget(dct, key):
 
     It will complain if you are trying to get into a leaf:
 
-        >>> mget({'a': 1}, 'a.y')  # doctest: +ELLIPSIS
+        >>> mget({'a': 1}, 'a.y')   ## doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ...
-        TypeError: 'int' object ...
+        NonDictLikeTypeError: can't query subvalue 'y' of a leaf...
 
     if the key is None, the whole dct should be sent back:
 
@@ -141,6 +141,25 @@ def mget(dct, key):
 
     """
     return aget(dct, tokenize(key))
+
+
+class MissingKeyError(KeyError):
+    """Raised when querying a dict-like structure on non-existing keys"""
+
+    def __str__(self):
+        return self.message
+
+
+class NonDictLikeTypeError(TypeError):
+    """Raised when attempting to traverse non-dict like structure"""
+
+
+class IndexNotIntegerError(ValueError):
+    pass
+
+
+class IndexOutOfRange(IndexError):
+    pass
 
 
 def aget(dct, key):
@@ -165,7 +184,34 @@ def aget(dct, key):
         head = next(key)
     except StopIteration:
         return dct
-    value = dct[int(head)] if isinstance(dct, list) else dct[head]
+
+    if isinstance(dct, list):
+        try:
+            idx = int(head)
+        except ValueError:
+            raise IndexNotIntegerError(
+                 "non-integer index %r provided on a list."
+                 % head)
+        try:
+            value = dct[idx]
+        except IndexError:
+            raise IndexOutOfRange(
+                "index %d is out of range (%d elements in list)."
+                % (idx, len(dct)))
+    else:
+        try:
+            value = dct[head]
+        except KeyError:
+            ## Replace with a more informative KeyError
+            raise MissingKeyError(
+                "missing key %r in dict."
+                % (head, ))
+        except:
+            raise NonDictLikeTypeError(
+                "can't query subvalue %r of a leaf%s."
+                % (head,
+                   (" (leaf value is %r)" % dct)
+                   if len(repr(dct)) < 15 else ""))
     return aget(value, key)
 
 
@@ -204,17 +250,20 @@ def main(args):
     key_value = None if len(args) == 1 else args[1]
     default = args[2] if len(args) > 2 else None
     contents = yaml.load(sys.stdin)
+
     try:
         try:
             value = mget(contents, key_value)
-        except KeyError:
+        except (IndexOutOfRange, MissingKeyError):
             if default is None:
                 raise
             value = default
-    except IndexError:
-        die("list index error in path %r." % key_value)
-    except (KeyError, TypeError):
-        die("invalid path %r." % key_value)
+    except (IndexOutOfRange, MissingKeyError,
+            NonDictLikeTypeError, IndexNotIntegerError) as exc:
+        msg = str(exc.message)
+        die("invalid path %r, %s"
+            % (key_value,
+               msg.replace('list', 'sequence').replace('dict', 'struct')))
 
     tvalue = type_name(value)
     termination = "\0" if action.endswith("-0") else "\n"
