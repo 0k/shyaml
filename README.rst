@@ -262,6 +262,34 @@ The first asks for keys of the root YAML, the second asks for keys of the
 content of the empty string named element located in the root YAML.
 
 
+Default Value
+-------------
+
+There is a third argument on the command line of shyaml which is the
+DEFAULT argument. If the given KEY was not found in the YAML
+structure, then ``shyaml`` would return what you provided as DEFAULT.
+
+As of version < 0.3, this argument was defaulted to the empty
+string. For all version above 0.3 (included), if not provided, then
+an error message will be printed::
+
+   $ echo "a: 3" | shyaml get-value a mydefault
+   3
+
+   $ echo "a: 3" | shyaml get-value b mydefault
+   mydefault
+
+   $ echo "a: 3" | shyaml get-value b
+   Error: invalid path 'b'.
+
+
+You can emulate pre v0.3 behavior by specifying explicitely an empty
+string as third argument::
+
+   $ echo "a: 3" | shyaml get-value b ''
+   $
+
+
 Usage string
 ------------
 

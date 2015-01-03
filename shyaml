@@ -61,7 +61,7 @@ def tokenize(s):
         yield token
 
 
-def mget(dct, key, default=None):
+def mget(dct, key):
     r"""Allow to get values deep in a dict with doted keys
 
     Accessing leaf values is quite straightforward:
@@ -94,7 +94,10 @@ def mget(dct, key, default=None):
         1
         >>> mget(dct, r'a\.x')
         3
-        >>> mget(dct, r'a.y')
+        >>> mget(dct, r'a.y')  ## doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        KeyError: 'y'
         >>> mget(dct, r'a\.y')
         4
 
@@ -124,14 +127,9 @@ def mget(dct, key, default=None):
         >>> mget(dct, r'b..')
         1
 
-    mget support also default value if the key is not found:
+    It will complain if you are trying to get into a leaf:
 
-        >>> mget({'a': 1}, 'b.y', default='N/A')
-        'N/A'
-
-    but will complain if you are trying to get into a leaf:
-
-        >>> mget({'a': 1}, 'a.y', default='N/A')  # doctest: +ELLIPSIS
+        >>> mget({'a': 1}, 'a.y')  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         TypeError: 'int' object ...
@@ -142,10 +140,10 @@ def mget(dct, key, default=None):
         {'a': 1}
 
     """
-    return aget(dct, tokenize(key), default)
+    return aget(dct, tokenize(key))
 
 
-def aget(dct, key, default=None):
+def aget(dct, key):
     r"""Allow to get values deep in a dict with iterable keys
 
     Accessing leaf values is quite straightforward:
@@ -167,11 +165,8 @@ def aget(dct, key, default=None):
         head = next(key)
     except StopIteration:
         return dct
-    try:
-        value = dct[int(head)] if isinstance(dct, list) else dct[head]
-    except KeyError:
-        return default
-    return aget(value, key, default)
+    value = dct[int(head)] if isinstance(dct, list) else dct[head]
+    return aget(value, key)
 
 
 def stderr(msg):
@@ -207,10 +202,15 @@ def main(args):
         die(usage, errlvl=0, prefix="")
     action = args[0]
     key_value = None if len(args) == 1 else args[1]
-    default = args[2] if len(args) > 2 else ""
+    default = args[2] if len(args) > 2 else None
     contents = yaml.load(sys.stdin)
     try:
-        value = mget(contents, key_value, default)
+        try:
+            value = mget(contents, key_value)
+        except KeyError:
+            if default is None:
+                raise
+            value = default
     except IndexError:
         die("list index error in path %r." % key_value)
     except (KeyError, TypeError):
