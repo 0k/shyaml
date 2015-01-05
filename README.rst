@@ -293,7 +293,7 @@ string as third argument::
 Usage string
 ------------
 
-A Quick remainder of what is available::
+A quick reminder of what is available::
 
     $ shyaml
     usage:
