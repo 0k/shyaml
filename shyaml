@@ -16,15 +16,16 @@ EXNAME = os.path.basename(sys.argv[0])
 
 
 def tokenize(s):
-    r"""Returns an iterable in all subpart of a '.' separated string
+    r"""Returns an iterable through all subparts of string splitted by '.'
 
     So:
 
         >>> list(tokenize('foo.bar.wiz'))
         ['foo', 'bar', 'wiz']
 
-    this function has to deal with any type of data in the string. So it
-    actually interprets the string. Characters with meaning are '.' and '\'.
+    Contrary to traditional ``.split()`` method, this function has to
+    deal with any type of data in the string. So it actually
+    interprets the string. Characters with meaning are '.' and '\'.
     Both of these can be included in a token by quoting them with '\'.
 
     So dot of slashes can be contained in token:
@@ -54,7 +55,7 @@ def tokenize(s):
         raise StopIteration
     tokens = (re.sub(r'\\(\\|\.)', r'\1', m.group(0))
               for m in re.finditer(r'((\\.|[^.\\])*)', s))
-    ## an empty string superfluous token is added after all non-empty string token:
+    ## an empty string superfluous token is added after all non-empty token
     for token in tokens:
         if len(token) != 0:
             next(tokens)
@@ -62,7 +63,7 @@ def tokenize(s):
 
 
 def mget(dct, key):
-    r"""Allow to get values deep in a dict with doted keys
+    r"""Allow to get values deep in recursive dict with doted keys
 
     Accessing leaf values is quite straightforward:
 
@@ -155,11 +156,11 @@ class NonDictLikeTypeError(TypeError):
 
 
 class IndexNotIntegerError(ValueError):
-    pass
+    """Raised when attempting to traverse sequence without using an integer"""
 
 
 class IndexOutOfRange(IndexError):
-    pass
+    """Raised when attempting to traverse sequence without using an integer"""
 
 
 def aget(dct, key):
@@ -190,8 +191,8 @@ def aget(dct, key):
             idx = int(head)
         except ValueError:
             raise IndexNotIntegerError(
-                 "non-integer index %r provided on a list."
-                 % head)
+                "non-integer index %r provided on a list."
+                % head)
         try:
             value = dct[idx]
         except IndexError:
@@ -216,10 +217,17 @@ def aget(dct, key):
 
 
 def stderr(msg):
+    """Convenience function to write short message to stderr."""
     sys.stderr.write(msg + "\n")
 
 
+def stdout(value):
+    """Convenience function to write short message to stdout."""
+    sys.stdout.write(value)
+
+
 def die(msg, errlvl=1, prefix="Error: "):
+    """Convenience function to write short message to stderr and quit."""
     stderr("%s%s" % (prefix, msg))
     sys.exit(errlvl)
 
@@ -228,24 +236,33 @@ COMPLEX_TYPES = (list, dict)
 
 
 def dump(value):
+    """Returns a representation of values directly usable by bash.
+
+    Literal types are printed as-is (avoiding quotes around string for
+    instance). But complex type are written in a YAML useable format.
+
+    """
     return value if isinstance(value, SIMPLE_TYPES) \
-      else yaml.dump(value, default_flow_style=False)
+        else yaml.dump(value, default_flow_style=False)
+
 
 def type_name(value):
     """Returns pseudo-YAML type name of given value."""
     return "struct" if isinstance(value, dict) else \
-          "sequence" if isinstance(value, (tuple, list)) else \
-          type(value).__name__
+        "sequence" if isinstance(value, (tuple, list)) else \
+        type(value).__name__
 
-def stdout(value):
-    sys.stdout.write(value)
 
-def main(args):
+def main(args):  ## pylint: disable=too-many-branches
+    """Entrypoint of the whole application"""
+
     usage = """usage:
     %(exname)s {get-value{,-0},get-type,keys{,-0},values{,-0}} KEY [DEFAULT]
     """ % {"exname": EXNAME}
+
     if len(args) == 0:
         die(usage, errlvl=0, prefix="")
+
     action = args[0]
     key_value = None if len(args) == 1 else args[1]
     default = args[2] if len(args) > 2 else None
