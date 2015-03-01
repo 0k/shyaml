@@ -218,7 +218,7 @@ def aget(dct, key):
 
 def stderr(msg):
     """Convenience function to write short message to stderr."""
-    sys.stderr.write(msg + "\n")
+    sys.stderr.write(msg)
 
 
 def stdout(value):
@@ -228,7 +228,7 @@ def stdout(value):
 
 def die(msg, errlvl=1, prefix="Error: "):
     """Convenience function to write short message to stderr and quit."""
-    stderr("%s%s" % (prefix, msg))
+    stderr("%s%s\n" % (prefix, msg))
     sys.exit(errlvl)
 
 SIMPLE_TYPES = (str, int, float)
