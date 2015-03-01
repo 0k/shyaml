@@ -301,11 +301,18 @@ def main(args):  ## pylint: disable=too-many-branches
                 % (action, tvalue))
     elif action == "get-type":
         print(tvalue)
-    elif action in ("keys", "keys-0", "values", "values-0"):
+    elif action in ("keys", "keys-0",
+                    "values", "values-0",
+                    "key-values", "key-values-0"):
         if isinstance(value, dict):
-            method = value.keys if action.startswith("keys") else value.values
+            method = value.keys if action.startswith("keys") else \
+                     value.items if action.startswith("key-values") else \
+                     value.values
+            output = (lambda x: termination.join(str(dump(e)) for e in x)) \
+                     if action.startswith("key-values") else \
+                     dump
             for k in method():
-                stdout("%s%s" % (dump(k), termination))
+                stdout("%s%s" % (output(k), termination))
         else:
             die("%s does not support %r type. "
                 "Please provide or select a struct." % (action, tvalue))

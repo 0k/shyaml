@@ -150,6 +150,46 @@ Iteration through values only (\0 terminated string highly recommended)::
     Line 1
     Line 2'
 
+Iteration through keys and values (\0 terminated string highly recommended)::
+
+    $ read-0() {
+        while [ "$1" ]; do
+            IFS=$'\0' read -r -d '' "$1" || return 1
+            shift
+        done
+      }
+
+    $ cat test.yaml | shyaml key-values-0 subvalue |
+      while read-0 key value; do
+          echo "KEY: '$key'"
+          echo "VALUE: '$value'"
+          echo
+      done
+    KEY: 'how-much'
+    VALUE: '1.1'
+
+    KEY: 'things'
+    VALUE: '- first
+    - second
+    - third
+    '
+
+    KEY: 'how-many'
+    VALUE: '2'
+
+    KEY: 'maintainer'
+    VALUE: 'Valentin Lab'
+
+    KEY: 'description'
+    VALUE: 'Multiline description:
+    Line 1
+    Line 2
+    '
+
+Notice, that you'll get the same result using
+``get-values``. ``get-values`` will support sequences and struct,
+and ``key-values`` support only struct. (for a complete table of
+which function support what you can look at the usage line)
 
 Parse sequence
 --------------
@@ -197,6 +237,11 @@ values for ``sequence`` types::
     Line 1
     Line 2
     '
+
+Please note that, if ``get-values{,-0}`` actually works on ``struct``,
+it's maybe more explicit to use the equivalent ``key-values{,0}``. It
+should be noted that ``key-values{,0}`` is not completly equivalent as
+it is meant to be used with ``struct`` only and will complain if not.
 
 You should also notice that values that are displayed are YAML compatible. So
 if they are complex, you can re-use ``shyaml`` on them to parse their content.
