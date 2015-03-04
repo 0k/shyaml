@@ -1,7 +1,21 @@
 language: python
 python:
-  - "3.3"
-  - "3.2"
+  - "3.4"
   - "2.7"
-install: ./autogen.sh && python setup.py install
-script: python -m doctest -d shyaml.py
+install:
+  - easy_install --version
+  - pip install setuptools==9.1   ## version 10 introduce a bug with d2to1
+  - pip install pip==1.5.6  ## some ``python setup.py`` black magic do not work with d2to1 and pip ``6.0.7``
+  - if [ -e requirements.txt ]; then pip install -r requirements.txt ; fi
+script:
+  - ## checking that we can actually install it
+  - python setup.py install
+  - python setup.py develop easy_install "$(./autogen.sh --get-name)[test]"  ## getting deps
+  - python setup.py develop --uninstall  ## removing stuff that breaks the following checks
+  - ## checking pip installability
+  - git fetch --unshallow ; pip install git+file://$PWD
+  - git reset --hard HEAD ; git clean -d -f ; python setup.py sdist --formats=gztar && pip install "dist/$(./autogen.sh --get-name)-$(./autogen.sh --get-version | tr "_" "-").tar.gz" --upgrade
+  - python -c "import $(./autogen.sh --get-name)"
+  - pip uninstall -y "$(./autogen.sh --get-name)"
+  - ## real tests
+  - python -m doctest shyaml.py

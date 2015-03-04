@@ -1,0 +1,5 @@
+NAME="shyaml"
+DESCRIPTION="YAML for command line"
+EMAIL="valentin.lab@kalysto.org"
+AUTHOR="Valentin Lab"
+AUTHOR_EMAIL="$AUTHOR <$EMAIL>"
