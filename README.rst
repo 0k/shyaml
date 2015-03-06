@@ -8,6 +8,7 @@ SHYAML: YAML for the command line
 .. image:: https://secure.travis-ci.org/0k/shyaml.png?branch=master
     :target: http://travis-ci.org/0k/shyaml
 
+
 Description
 ===========
 
@@ -340,9 +341,62 @@ Usage string
 
 A quick reminder of what is available::
 
-    $ shyaml
-    usage:
-        shyaml {get-value{,-0},get-type,keys{,-0},values{,-0}} KEY [DEFAULT]
+    $ shyaml --help
+    Parses and output chosen subpart or values from YAML input.
+    It reads YAML in stdin and will output on stdout it's return value.
+
+    Usage:
+
+        shyaml ACTION KEY [DEFAULT]
+
+    Options:
+
+        ACTION    Depending on the type of data you've targetted
+                  thanks to the KEY, ACTION can be:
+
+                  These ACTIONs applies to any YAML type:
+
+                    get-type          ## returns a short string
+                    get-value         ## returns YAML
+
+                  This ACTION applies to 'sequence' and 'struct' YAML type:
+
+                    get-values{,-0}   ## return list of YAML
+
+                  These ACTION applies to 'struct' YAML type:
+
+                    keys{,-0}         ## return list of YAML
+                    values{,-0}       ## return list of YAML
+                    key-values,{,-0}  ## return list of YAML
+
+                  Note that any value returned is returned on stdout, and
+                  when returning ``list of YAML``, it'll be separated by
+                  ``\n`` or ``NUL`` char depending of you've used the
+                  ``-0`` suffixed ACTION.
+
+        KEY       Identifier to browse and target subvalues into YAML
+                  structure. Use ``.`` to parse a subvalue. If you need
+                  to use a literal ``.`` or ``\``, use ``\`` to quote it.
+
+                  Use struct keyword to browse ``struct`` YAML data and use
+                  integers to browse ``sequence`` YAML data.
+
+        DEFAULT   if not provided and given KEY do not match any value in
+                  the provided YAML, then DEFAULT will be returned. If no
+                  default is provided and the KEY do not match any value
+                  in the provided YAML, shyaml will fail with an error
+                  message.
+
+    Examples:
+
+         ## get last grocery
+         cat recipe.yaml       | shyaml get-value groceries.-1
+
+         ## get all words of my french dictionary
+         cat dictionaries.yaml | shyaml keys-0 french.dictionary
+
+         ## get YAML config part of 'myhost'
+         cat hosts_config.yaml | shyaml get-value cfgs.myhost
 
 
 Contributing
