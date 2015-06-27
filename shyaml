@@ -295,7 +295,7 @@ def die(msg, errlvl=1, prefix="Error: "):
     stderr("%s%s\n" % (prefix, msg))
     sys.exit(errlvl)
 
-SIMPLE_TYPES = (str, int, float)
+SIMPLE_TYPES = (str, int, float, unicode)
 COMPLEX_TYPES = (list, dict)
 
 
