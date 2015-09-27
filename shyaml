@@ -382,7 +382,7 @@ def main(args):  ## pylint: disable=too-many-branches
             die("%s does not support %r type. "
                 "Please provide or select a struct." % (action, tvalue))
     else:
-        die("Invalid argument.\n%s" % usage)
+        die("Invalid argument.\n%s" % USAGE)
 
 
 if __name__ == "__main__":
