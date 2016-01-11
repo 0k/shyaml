@@ -12,6 +12,7 @@ import yaml
 import os.path
 import re
 
+
 EXNAME = os.path.basename(sys.argv[0])
 
 USAGE = """\
@@ -78,6 +79,36 @@ Examples:
 
 """ % {"exname": EXNAME, "usage": USAGE}
 
+##
+## Keep previous order in YAML
+##
+
+try:
+    # included in standard lib from Python 2.7
+    from collections import OrderedDict
+except ImportError:
+    # try importing the backported drop-in replacement
+    # it's available on PyPI
+    from ordereddict import OrderedDict
+
+
+## Ensure that there are no collision with legacy OrderedDict
+## that could be used for omap for instance.
+class MyOrderedDict(OrderedDict):
+    pass
+
+yaml.add_representer(
+    MyOrderedDict,
+    lambda cls, data: cls.represent_dict(data.items()))
+
+yaml.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+    lambda cls, node: MyOrderedDict(cls.construct_pairs(node)))
+
+
+##
+## Key specifier
+##
 
 def tokenize(s):
     r"""Returns an iterable through all subparts of string splitted by '.'

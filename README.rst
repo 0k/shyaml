@@ -336,6 +336,47 @@ string as third argument::
    $
 
 
+Ordered mappings
+----------------
+
+Currently, using ``shyaml`` in a shell script involves happily taking
+YAML inputs and outputting YAML outputs that will further be processed.
+
+And this works very well.
+
+Before version ``0.4.0``, ``shyaml`` would boldly re-order (sorting them
+alphabetically) the keys in mappings. If this should be considered
+harmless per specification (mappings are indeed supposed to be
+unordered, this means order does not matter), in practical, YAML users
+could feel wronged by ``shyaml`` when there YAML got mangled and they
+wanted to give a meaning to the basic YAML mapping.
+
+Who am I to forbid such usage of YAML mappings ? So starting from
+version ``0.4.0``, ``shyaml`` will happily keep the order of your
+mappings::
+
+    cat <<EOF > /tmp/test.yml
+    mapping:
+      a: 1
+      c: 2
+      b: 3
+    EOF
+
+For ``shyaml`` version before ``0.4.0``::
+
+    $ shyaml get-value mapping < test.yml
+    a: 1
+    b: 3
+    c: 2
+
+For ``shyaml`` version including and after ``0.4.0``::
+
+    $ shyaml get-value mapping < test.yml
+    a: 1
+    c: 2
+    b: 3
+
+
 Usage string
 ------------
 
