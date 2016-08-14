@@ -102,6 +102,13 @@ Get type of attributes::
     $ cat test.yaml | shyaml get-type subvalue.how-much
     float
 
+Get length of structures or sequences::
+
+    $ cat test.yaml | shyaml get-length subvalue
+    5
+    $ cat test.yaml | shyaml get-length subvalue.things
+    3
+
 
 Parse structure
 ---------------
@@ -436,6 +443,10 @@ A quick reminder of what is available::
                   This ACTION applies to 'sequence' and 'struct' YAML type:
 
                     get-values{,-0}   ## return list of YAML
+
+                  This ACTION applies to 'sequence' and 'struct' YAML type:
+
+                    get-length        ## return length of the list of YAML
 
                   These ACTION applies to 'struct' YAML type:
 
