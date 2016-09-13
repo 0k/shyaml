@@ -44,6 +44,15 @@ Or even select a specific revision (branch/tag/commit)::
 
     pip install git+https://github.com/0k/shyaml@master
 
+On macOS, you can also install the latest release version via `Homebrew
+<https://github.com/Homebrew/brew/>`_::
+
+    brew install shyaml
+
+Or to install the master branch::
+
+    brew install shyaml --HEAD
+
 
 Usage
 =====
