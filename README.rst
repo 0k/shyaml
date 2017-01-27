@@ -18,7 +18,7 @@ This can be handy, if you want to get access to YAML data in your shell
 scripts.
 
 This scripts supports only read access and it might not support all
-the subtilties of YAML specification. But it should support some handy
+the subtleties of YAML specification. But it should support some handy
 basic query of YAML file.
 
 
