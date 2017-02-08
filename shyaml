@@ -102,9 +102,17 @@ yaml.add_representer(
     MyOrderedDict,
     lambda cls, data: cls.represent_dict(data.items()))
 
+
+def construct_omap(cls, node):
+    ## Force unfolding reference and merges
+    ## otherwise it would fail on 'merge'
+    cls.flatten_mapping(node)
+    return MyOrderedDict(cls.construct_pairs(node))
+
+
 yaml.add_constructor(
     yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-    lambda cls, node: MyOrderedDict(cls.construct_pairs(node)))
+    construct_omap)
 
 
 ##
