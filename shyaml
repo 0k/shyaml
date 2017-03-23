@@ -343,7 +343,7 @@ def die(msg, errlvl=1, prefix="Error: "):
     stderr("%s%s\n" % (prefix, msg))
     sys.exit(errlvl)
 
-SIMPLE_TYPES = (str, int, float) if PY3 else (basestring, int, float)
+SIMPLE_TYPES = (str if PY3 else basestring, int, float, type(None))
 COMPLEX_TYPES = (list, dict)
 
 
