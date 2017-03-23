@@ -1,21 +1,72 @@
 language: python
 python:
+  - "3.6"
+  - "3.5"
   - "3.4"
   - "2.7"
 install:
-  - easy_install --version
-  - pip install setuptools==9.1   ## version 10 introduce a bug with d2to1
-  - pip install pip==1.5.6  ## some ``python setup.py`` black magic do not work with d2to1 and pip ``6.0.7``
   - if [ -e requirements.txt ]; then pip install -r requirements.txt ; fi
-script:
-  - ## checking that we can actually install it
-  - python setup.py install
   - python setup.py develop easy_install "$(./autogen.sh --get-name)[test]"  ## getting deps
-  - python setup.py develop --uninstall  ## removing stuff that breaks the following checks
-  - ## checking pip installability
-  - git fetch --unshallow ; pip install git+file://$PWD
-  - git reset --hard HEAD ; git clean -d -f ; python setup.py sdist --formats=gztar && pip install "dist/$(./autogen.sh --get-name)-$(./autogen.sh --get-version | tr "_" "-").tar.gz" --upgrade
-  - python -c "import $(./autogen.sh --get-name)"
-  - pip uninstall -y "$(./autogen.sh --get-name)"
-  - ## real tests
+script:
   - python -m doctest shyaml.py
+
+
+## Ignored by Travis, but used internally to check packaging
+dist_check:
+  options:
+    exclude:
+      - ["v:3.6", "pkg:old"]  ## old version is breaking python 3.6 pkg_resources
+  tests:
+  - label: install
+    matrix:
+      'yes':
+        - label: venv
+          matrix:
+            'on': |
+              pip install virtualenv
+              virtualenv /tmp/virtualenv
+              . /tmp/virtualenv/bin/activate
+            'off': |
+              true
+        - label: pkg
+          matrix:
+            old: |
+              ## version 10 introduce a bug with d2to1
+              pip install setuptools==9.1
+              ## some ``python setup.py`` black magic do not work with d2to1 and pip ``6.0.7``
+              pip install pip==1.5.6
+            docker: |
+              ## Using the versions of python docker images
+              true
+            latest: |
+              ## Using the last version of pip and setuptools
+              pip install pip --upgrade
+              pip install setuptools --upgrade
+        - label: method
+          matrix:
+            setup: python setup.py install
+            pip: pip install .
+            pip+git: pip install "git+file://$PWD"
+            dist:
+              dist_files:
+                pip install "$DIST_FILE"
+        - |
+          pip show -f $(./autogen.sh --get-name)
+          pip list
+      'no':
+      - |
+        ln -sf $PWD/$(./autogen.sh --get-name) /usr/local/bin/
+        touch /tmp/not-installed
+
+  - |
+    cd /tmp
+    cat <<EOF | shyaml get-value c.d
+    a: b
+    c:
+      d: 1
+    EOF
+  - |
+    [ -e /tmp/not-installed ] || {
+        cd "$OLDPWD"
+        pip uninstall -y $(./autogen.sh --get-name)
+    }

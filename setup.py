@@ -18,7 +18,9 @@ from setuptools import setup
 if "%%short-version%%".startswith("%%"):
     import os.path
     import sys
-    if not os.path.exists('./autogen.sh'):
+    WIN32 = sys.platform == 'win32'
+    autogen = os.path.join(".", "autogen.sh")
+    if not os.path.exists(autogen):
         sys.stderr.write(
             "This source repository was not configured.\n"
             "Please ensure ``./autogen.sh`` exists and that you are running "
@@ -35,10 +37,12 @@ if "%%short-version%%".startswith("%%"):
                      "running './autogen.sh'...\n")
     import os
     import subprocess
-    os.system('./autogen.sh > .autogen.sh.output')
+    os.system('%s%s > .autogen.sh.output'
+              % ("bash " if WIN32 else "",
+                 autogen))
     cmdline = sys.argv[:]
     if cmdline[0] == "-c":
-        ## XXXvlab: for some reason, this is needed when launched from pip
+        ## for some reason, this is needed when launched from pip
         cmdline[0] = "setup.py"
     errlvl = subprocess.call(["python", ] + cmdline)
     os.unlink(".autogen.sh.output")
