@@ -377,6 +377,22 @@ For ``shyaml`` version including and after ``0.4.0``::
     b: 3
 
 
+Strict YAML for further processing
+----------------------------------
+
+Processing yaml can be done recursively and extensively through
+using the output of ``shyaml`` into ``shyaml``. Most of its output
+is itself YAML. Most ? Well, for ease of use, literal keys (string, numbers)
+are outputed directly without YAML quotes, which is often convenient.
+
+But this has the consequence of introducing inconsistent behavior. So
+when processing YAML coming out of shyaml, you should probably think
+about using the ``--yaml`` (or ``-y``) option to output only strict YAML.
+
+With the drawback that when you'll want to output string, you'll need to
+call a last time ``shyaml get-value`` to explicitely unquote the YAML.
+
+
 Usage string
 ------------
 
@@ -388,9 +404,17 @@ A quick reminder of what is available::
 
     Usage:
 
-        shyaml ACTION KEY [DEFAULT]
+        %(exname)s [-y|--yaml] ACTION KEY [DEFAULT]
 
     Options:
+
+        -y, --yaml
+                  Output only YAML safe value, more precisely, even
+                  literal values will be YAML quoted. This behavior
+                  is required if you want to output YAML subparts and
+                  further process it. If you know you have are dealing
+                  with safe literal value, then you don't need this.
+                  (Default: no safe YAML output)
 
         ACTION    Depending on the type of data you've targetted
                   thanks to the KEY, ACTION can be:

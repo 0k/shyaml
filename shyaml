@@ -20,7 +20,7 @@ USAGE = """\
 Usage:
 
     %(exname)s (-h|--help)
-    %(exname)s ACTION KEY [DEFAULT]
+    %(exname)s [-y|--yaml] ACTION KEY [DEFAULT]
 """ % {"exname": EXNAME}
 
 HELP = """
@@ -30,6 +30,14 @@ It reads YAML in stdin and will output on stdout it's return value.
 %(usage)s
 
 Options:
+
+    -y, --yaml
+              Output only YAML safe value, more precisely, even
+              literal values will be YAML quoted. This behavior
+              is required if you want to output YAML subparts and
+              further process it. If you know you have are dealing
+              with safe literal value, then you don't need this.
+              (Default: no safe YAML output)
 
     ACTION    Depending on the type of data you've targetted
               thanks to the KEY, ACTION can be:
@@ -339,7 +347,7 @@ SIMPLE_TYPES = (str, int, float) if PY3 else (basestring, int, float)
 COMPLEX_TYPES = (list, dict)
 
 
-def dump(value):
+def magic_dump(value):
     """Returns a representation of values directly usable by bash.
 
     Literal types are printed as-is (avoiding quotes around string for
@@ -348,6 +356,14 @@ def dump(value):
     """
     return value if isinstance(value, SIMPLE_TYPES) \
         else yaml.dump(value, default_flow_style=False)
+
+def yaml_dump(value):
+    """Returns a representation of values directly usable by bash.
+
+    Literal types are quoted and safe to use as YAML.
+
+    """
+    return yaml.dump(value, default_flow_style=False)
 
 
 def type_name(value):
@@ -367,6 +383,12 @@ def main(args):  ## pylint: disable=too-many-branches
     if len(args) == 1 and args[0] in ("-h", "--help"):
         stdout(HELP)
         exit(0)
+
+    dump = magic_dump
+    for arg in ["-y", "--yaml"]:
+        if arg in args:
+            args.remove(arg)
+            dump = yaml_dump
 
     action = args[0]
     key_value = None if len(args) == 1 else args[1]
