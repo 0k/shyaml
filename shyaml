@@ -354,7 +354,7 @@ def magic_dump(value):
     instance). But complex type are written in a YAML useable format.
 
     """
-    return value if isinstance(value, SIMPLE_TYPES) \
+    return value.encode('utf-8') if isinstance(value, SIMPLE_TYPES) \
         else yaml.dump(value, default_flow_style=False)
 
 def yaml_dump(value):
