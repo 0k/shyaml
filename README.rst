@@ -22,6 +22,12 @@ the subtleties of YAML specification. But it should support some handy
 basic query of YAML file.
 
 
+Requirements
+============
+
+``shyaml`` works in Linux, macOS, and Windows with python 2.7 and 3+.
+
+
 Installation
 ============
 
