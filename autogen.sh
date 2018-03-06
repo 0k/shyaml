@@ -19,7 +19,10 @@ get_path() { (
     IFS=:
     for d in $PATH; do
         filename="$d/$1"
-        if test -x "$filename"; then echo "$d/$1"; return 0; fi
+        [ -f "$filename" -a -x "$filename" ] && {
+            echo "$d/$1"
+            return 0
+        }
     done
     return 1
 ) }
@@ -30,7 +33,7 @@ print_exit() {
 }
 
 print_syntax_error() {
-    [ "$*" ] ||	print_syntax_error "$FUNCNAME: no arguments"
+    [ "$*" ] ||    print_syntax_error "$FUNCNAME: no arguments"
     print_exit "${ERROR}script error:${NORMAL} $@" >&2
 }
 
@@ -47,27 +50,26 @@ print_error() {
 }
 
 depends() {
+    ## Avoid colliding with variables that are created with depends.
+    local __i __tr __path __new_name
+    __tr=$(get_path "tr")
+    test "$__tr" ||
+        die "dependency check: couldn't find 'tr' command."
 
-    local i tr path
+    for __i in "$@"; do
+        if ! __path=$(get_path "$__i"); then
+            __new_name=$(echo "$__i" | "$__tr" '_' '-')
+            if [ "$__new_name" != "$__i" ]; then
+                depends "$__new_name"
+            else
 
-    tr=$(get_path "tr") ||
-	print_error "dependency check : couldn't find 'tr' command."
-
-    for i in $@ ; do
-
-      if ! path=$(get_path $i); then
-	  new_name=$(echo $i | "$tr" '_' '-')
-	  if [ "$new_name" != "$i" ]; then
-	     depends "$new_name"
-	  else
-	     print_error "dependency check : couldn't find '$i' command."
-	  fi
-      else
-	  if ! test -z "$path" ; then
-	      export "$(echo $i | "$tr" '-' '_')"=$path
-	  fi
-      fi
-
+                print_error "dependency check: couldn't find '$__i' required command."
+            fi
+        else
+            if ! test -z "$__path" ; then
+                export "$(echo "$__i" | "$__tr" -- '- ' '__')"="$__path"
+            fi
+        fi
     done
 }
 
