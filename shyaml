@@ -376,6 +376,12 @@ def type_name(value):
 def main(args):  ## pylint: disable=too-many-branches
     """Entrypoint of the whole application"""
 
+    dump = magic_dump
+    for arg in ["-y", "--yaml"]:
+        if arg in args:
+            args.remove(arg)
+            dump = yaml_dump
+
     if len(args) == 0:
         stderr("Error: Bad number of arguments.\n")
         die(USAGE, errlvl=1, prefix="")
@@ -383,12 +389,6 @@ def main(args):  ## pylint: disable=too-many-branches
     if len(args) == 1 and args[0] in ("-h", "--help"):
         stdout(HELP)
         exit(0)
-
-    dump = magic_dump
-    for arg in ["-y", "--yaml"]:
-        if arg in args:
-            args.remove(arg)
-            dump = yaml_dump
 
     action = args[0]
     key_value = None if len(args) == 1 else args[1]
