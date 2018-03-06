@@ -51,6 +51,10 @@ Options:
 
                 get-values{,-0}   ## return list of YAML
 
+              This ACTION applies to 'sequence' and 'struct' YAML type:
+
+                get-length        ## return length of the list of YAML
+
               These ACTION applies to 'struct' YAML type:
 
                 keys{,-0}         ## return list of YAML
@@ -428,6 +432,11 @@ def main(args):  ## pylint: disable=too-many-branches
                 % (action, tvalue))
     elif action == "get-type":
         print(tvalue)
+    elif action == "get-length":
+        if isinstance(value, dict):
+            stdout("%d" % len(value))
+        elif isinstance(value, list):
+            stdout("%d" % len(value))
     elif action in ("keys", "keys-0",
                     "values", "values-0",
                     "key-values", "key-values-0"):
