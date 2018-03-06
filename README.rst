@@ -420,7 +420,9 @@ A quick reminder of what is available::
 
     Usage:
 
-        %(exname)s [-y|--yaml] ACTION KEY [DEFAULT]
+        shyaml (-h|--help)
+        shyaml [-y|--yaml] ACTION KEY [DEFAULT]
+
 
     Options:
 
