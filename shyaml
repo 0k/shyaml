@@ -1,16 +1,14 @@
 #!/usr/bin/env python
-
-## Note: to launch test, you can use:
-##   python -m doctest -d shyaml.py
-## or
-##   nosetests
-
+"""
+YAML for command line.
+"""
 from __future__ import print_function
 
 import sys
 import yaml
 import os.path
 import re
+
 
 PY3 = sys.version_info[0] >= 3
 
@@ -76,7 +74,7 @@ Options:
     DEFAULT   if not provided and given KEY do not match any value in
               the provided YAML, then DEFAULT will be returned. If no
               default is provided and the KEY do not match any value
-              in the provided YAML, %(exname)s will fail with an error 
+              in the provided YAML, %(exname)s will fail with an error
               message.
 
 Examples:
@@ -92,9 +90,9 @@ Examples:
 
 """ % {"exname": EXNAME, "usage": USAGE}
 
-##
-## Keep previous order in YAML
-##
+#
+# Keep previous order in YAML
+#
 
 try:
     # included in standard lib from Python 2.7
@@ -105,8 +103,8 @@ except ImportError:
     from ordereddict import OrderedDict
 
 
-## Ensure that there are no collision with legacy OrderedDict
-## that could be used for omap for instance.
+# Ensure that there are no collision with legacy OrderedDict
+# that could be used for omap for instance.
 class MyOrderedDict(OrderedDict):
     pass
 
@@ -116,8 +114,8 @@ yaml.add_representer(
 
 
 def construct_omap(cls, node):
-    ## Force unfolding reference and merges
-    ## otherwise it would fail on 'merge'
+    # Force unfolding reference and merges
+    # otherwise it would fail on 'merge'
     cls.flatten_mapping(node)
     return MyOrderedDict(cls.construct_pairs(node))
 
@@ -127,9 +125,9 @@ yaml.add_constructor(
     construct_omap)
 
 
-##
-## Key specifier
-##
+#
+# Key specifier
+#
 
 def tokenize(s):
     r"""Returns an iterable through all subparts of string splitted by '.'
@@ -171,7 +169,7 @@ def tokenize(s):
         raise StopIteration
     tokens = (re.sub(r'\\(\\|\.)', r'\1', m.group(0))
               for m in re.finditer(r'((\\.|[^.\\])*)', s))
-    ## an empty string superfluous token is added after all non-empty token
+    # an empty string superfluous token is added after all non-empty token
     for token in tokens:
         if len(token) != 0:
             next(tokens)
@@ -347,6 +345,7 @@ def die(msg, errlvl=1, prefix="Error: "):
     stderr("%s%s\n" % (prefix, msg))
     sys.exit(errlvl)
 
+
 SIMPLE_TYPES = (str if PY3 else basestring, int, float, type(None))
 COMPLEX_TYPES = (list, dict)
 
@@ -360,6 +359,7 @@ def magic_dump(value):
     """
     return value if isinstance(value, SIMPLE_TYPES) \
         else yaml.dump(value, default_flow_style=False)
+
 
 def yaml_dump(value):
     """Returns a representation of values directly usable by bash.
@@ -377,7 +377,7 @@ def type_name(value):
         type(value).__name__
 
 
-def main(args):  ## pylint: disable=too-many-branches
+def main(args):  # pylint: disable=too-many-branches
     """Entrypoint of the whole application"""
 
     dump = magic_dump
