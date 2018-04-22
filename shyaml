@@ -1,16 +1,14 @@
 #!/usr/bin/env python
-
-## Note: to launch test, you can use:
-##   python -m doctest -d shyaml.py
-## or
-##   nosetests
-
+"""
+YAML for command line.
+"""
 from __future__ import print_function
 
 import sys
 import yaml
 import os.path
 import re
+
 
 PY3 = sys.version_info[0] >= 3
 
@@ -68,7 +66,7 @@ Options:
 
     KEY       Identifier to browse and target subvalues into YAML
               structure. Use ``.`` to parse a subvalue. If you need
-              to use a literal ``.`` or ``\``, use ``\`` to quote it.
+              to use a literal ``.`` or ``\\``, use ``\\`` to quote it.
 
               Use struct keyword to browse ``struct`` YAML data and use
               integers to browse ``sequence`` YAML data.
@@ -76,7 +74,7 @@ Options:
     DEFAULT   if not provided and given KEY do not match any value in
               the provided YAML, then DEFAULT will be returned. If no
               default is provided and the KEY do not match any value
-              in the provided YAML, %(exname)s will fail with an error 
+              in the provided YAML, %(exname)s will fail with an error
               message.
 
 Examples:
@@ -109,6 +107,7 @@ except ImportError:
 ## that could be used for omap for instance.
 class MyOrderedDict(OrderedDict):
     pass
+
 
 yaml.add_representer(
     MyOrderedDict,
@@ -347,6 +346,7 @@ def die(msg, errlvl=1, prefix="Error: "):
     stderr("%s%s\n" % (prefix, msg))
     sys.exit(errlvl)
 
+
 SIMPLE_TYPES = (str if PY3 else basestring, int, float, type(None))
 COMPLEX_TYPES = (list, dict)
 
@@ -360,6 +360,7 @@ def magic_dump(value):
     """
     return value if isinstance(value, SIMPLE_TYPES) \
         else yaml.dump(value, default_flow_style=False)
+
 
 def yaml_dump(value):
     """Returns a representation of values directly usable by bash.
@@ -377,7 +378,7 @@ def type_name(value):
         type(value).__name__
 
 
-def main(args):  ## pylint: disable=too-many-branches
+def main(args):  # pylint: disable=too-many-branches
     """Entrypoint of the whole application"""
 
     dump = magic_dump
@@ -444,11 +445,11 @@ def main(args):  ## pylint: disable=too-many-branches
                     "key-values", "key-values-0"):
         if isinstance(value, dict):
             method = value.keys if action.startswith("keys") else \
-                     value.items if action.startswith("key-values") else \
-                     value.values
+                value.items if action.startswith("key-values") else \
+                value.values
             output = (lambda x: termination.join(str(dump(e)) for e in x)) \
-                     if action.startswith("key-values") else \
-                     dump
+                if action.startswith("key-values") else \
+                dump
             for k in method():
                 stdout("%s%s" % (output(k), termination))
         else:
