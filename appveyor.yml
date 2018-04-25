@@ -1,0 +1,50 @@
+# What Python version is installed where:
+# http://www.appveyor.com/docs/installed-software#python
+
+environment:
+  global:
+    PYTHONIOENCODING: utf-8
+  matrix:
+    - PYTHON: "C:\\Python27"
+    - PYTHON: "C:\\Python27-x64"
+    - PYTHON: "C:\\Python34"
+    - PYTHON: "C:\\Python34-x64"
+    - PYTHON: "C:\\Python35"
+    - PYTHON: "C:\\Python35-x64"
+    - PYTHON: "C:\\Python36"
+    - PYTHON: "C:\\Python36-x64"
+
+## Before repo cloning
+init:
+  ## without this, temporary directory could be created in current dir
+  ## which will make some tests fail.
+  - mkdir C:\TMP
+  - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - python -V
+
+## After repo cloning
+install:
+
+build: false
+
+## Before tests
+before_test:
+  - for /f %%i in ('bash .\autogen.sh --get-name') do set PACKAGE_NAME=%%i
+  - python setup.py develop easy_install %PACKAGE_NAME%[test]
+  - pip install coverage codecov
+
+## Custom test script
+test_script:
+
+  ## Fail early on big problems
+  - "python -m doctest shyaml.py"
+
+  - "shyaml -h"
+
+after_test:
+  - "codecov & REM  #dovis: ignore"
+  - |
+    IF DEFINED DOVIS IF DEFINED ARTIFACT_DIR IF EXIST .coverage (
+        cp .coverage %ARTIFACT_DIR%
+        echo %cd% > %ARTIFACT_DIR%/cover_path
+    )
