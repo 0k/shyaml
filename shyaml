@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+YAML for command line.
+"""
 
 ## Note: to launch test, you can use:
 ##   python -m doctest -d shyaml.py
@@ -11,6 +14,7 @@ import sys
 import yaml
 import os.path
 import re
+
 
 PY3 = sys.version_info[0] >= 3
 
@@ -65,7 +69,7 @@ Options:
 
     KEY       Identifier to browse and target subvalues into YAML
               structure. Use ``.`` to parse a subvalue. If you need
-              to use a literal ``.`` or ``\``, use ``\`` to quote it.
+              to use a literal ``.`` or ``\\``, use ``\\`` to quote it.
 
               Use struct keyword to browse ``struct`` YAML data and use
               integers to browse ``sequence`` YAML data.
@@ -73,7 +77,7 @@ Options:
     DEFAULT   if not provided and given KEY do not match any value in
               the provided YAML, then DEFAULT will be returned. If no
               default is provided and the KEY do not match any value
-              in the provided YAML, %(exname)s will fail with an error 
+              in the provided YAML, %(exname)s will fail with an error
               message.
 
 Examples:
@@ -94,11 +98,11 @@ Examples:
 ##
 
 try:
-    # included in standard lib from Python 2.7
+    ## included in standard lib from Python 2.7
     from collections import OrderedDict
 except ImportError:
-    # try importing the backported drop-in replacement
-    # it's available on PyPI
+    ## try importing the backported drop-in replacement
+    ## it's available on PyPI
     from ordereddict import OrderedDict
 
 
@@ -106,6 +110,7 @@ except ImportError:
 ## that could be used for omap for instance.
 class MyOrderedDict(OrderedDict):
     pass
+
 
 yaml.add_representer(
     MyOrderedDict,
@@ -320,7 +325,7 @@ def aget(dct, key):
             raise MissingKeyError(
                 "missing key %r in dict."
                 % (head, ))
-        except:
+        except Exception:
             raise NonDictLikeTypeError(
                 "can't query subvalue %r of a leaf%s."
                 % (head,
@@ -344,6 +349,7 @@ def die(msg, errlvl=1, prefix="Error: "):
     stderr("%s%s\n" % (prefix, msg))
     sys.exit(errlvl)
 
+
 SIMPLE_TYPES = (str if PY3 else basestring, int, float, type(None))
 COMPLEX_TYPES = (list, dict)
 
@@ -357,6 +363,7 @@ def magic_dump(value):
     """
     return value if isinstance(value, SIMPLE_TYPES) \
         else yaml.dump(value, default_flow_style=False)
+
 
 def yaml_dump(value):
     """Returns a representation of values directly usable by bash.
@@ -441,11 +448,11 @@ def main(args):  ## pylint: disable=too-many-branches
                     "key-values", "key-values-0"):
         if isinstance(value, dict):
             method = value.keys if action.startswith("keys") else \
-                     value.items if action.startswith("key-values") else \
-                     value.values
+                value.items if action.startswith("key-values") else \
+                value.values
             output = (lambda x: termination.join(str(dump(e)) for e in x)) \
-                     if action.startswith("key-values") else \
-                     dump
+                if action.startswith("key-values") else \
+                dump
             for k in method():
                 stdout("%s%s" % (output(k), termination))
         else:
