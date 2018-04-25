@@ -408,7 +408,7 @@ def main(args):  ## pylint: disable=too-many-branches
             value = default
     except (IndexOutOfRange, MissingKeyError,
             NonDictLikeTypeError, IndexNotIntegerError) as exc:
-        msg = str(exc.message)
+        msg = str(exc)
         die("invalid path %r, %s"
             % (key_value,
                msg.replace('list', 'sequence').replace('dict', 'struct')))

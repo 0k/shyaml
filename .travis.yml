@@ -56,6 +56,7 @@ dist_check:
       'no':
       - |
         ln -sf $PWD/$(./autogen.sh --get-name) /usr/local/bin/
+        pip install pyyaml
         touch /tmp/not-installed
 
   - |
