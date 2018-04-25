@@ -47,19 +47,16 @@ Options:
                 get-type          ## returns a short string
                 get-value         ## returns YAML
 
-              This ACTION applies to 'sequence' and 'struct' YAML type:
+              These ACTIONs applies to 'sequence' and 'struct' YAML type:
 
-                get-values{,-0}   ## return list of YAML
-
-              This ACTION applies to 'sequence' and 'struct' YAML type:
-
-                get-length        ## return length of the list of YAML
+                get-values{,-0}   ## returns list of YAML
+                get-length        ## returns an integer
 
               These ACTION applies to 'struct' YAML type:
 
-                keys{,-0}         ## return list of YAML
-                values{,-0}       ## return list of YAML
-                key-values,{,-0}  ## return list of YAML
+                keys{,-0}         ## returns list of YAML
+                values{,-0}       ## returns list of YAML
+                key-values,{,-0}  ## returns list of YAML
 
               Note that any value returned is returned on stdout, and
               when returning ``list of YAML``, it'll be separated by
