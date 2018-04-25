@@ -6,9 +6,11 @@ python:
   - "2.7"
 install:
   - if [ -e requirements.txt ]; then pip install -r requirements.txt ; fi
+  - pip install pycodestyle
   - python setup.py develop easy_install "$(./autogen.sh --get-name)[test]"  ## getting deps
 script:
   - python -m doctest shyaml.py
+  - pycodestyle
 
 
 ## Ignored by Travis, but used internally to check packaging
