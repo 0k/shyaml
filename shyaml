@@ -130,6 +130,36 @@ yaml.add_constructor(
 
 
 ##
+## Support local and global objects
+##
+
+class EncapsulatedNode(object):
+    """Holds a yaml node"""
+
+
+def mk_encapsulated_node(s, node):
+
+    method = "construct_%s" % (node.id, )
+    data = getattr(s, method)(node)
+
+    class _E(data.__class__, EncapsulatedNode):
+        pass
+
+    _E.__name__ = str(node.tag)
+    _E._node = node
+    return _E(data)
+
+
+def represent_encapsulated_node(s, o):
+    value = s.represent_data(o.__class__.__bases__[0](o))
+    value.tag = o.__class__.__name__
+    return value
+
+yaml.add_multi_representer(EncapsulatedNode, represent_encapsulated_node)
+yaml.add_constructor(None, mk_encapsulated_node)
+
+
+##
 ## Key specifier
 ##
 
@@ -376,9 +406,10 @@ def yaml_dump(value):
 
 def type_name(value):
     """Returns pseudo-YAML type name of given value."""
-    return "struct" if isinstance(value, dict) else \
-        "sequence" if isinstance(value, (tuple, list)) else \
-        type(value).__name__
+    return type(value).__name__ if isinstance(value, EncapsulatedNode) else \
+           "struct" if isinstance(value, dict) else \
+           "sequence" if isinstance(value, (tuple, list)) else \
+           type(value).__name__
 
 
 def main(args):  ## pylint: disable=too-many-branches

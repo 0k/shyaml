@@ -415,6 +415,87 @@ With the drawback that when you'll want to output string, you'll need to
 call a last time ``shyaml get-value`` to explicitely unquote the YAML.
 
 
+Object Tag
+----------
+
+YAML spec allows object tags which allows you to map local data to
+objects in your application.
+
+When using ``shyaml``, we do not want to mess with these tags, but still
+allow parsing their internal structure.
+
+``get-type`` will correctly give you the type of the object::
+
+    cat <<EOF > test.yml
+    %TAG !e! tag:example.com,2000:app/
+    ---
+    - !e!foo "bar"
+    EOF
+
+    $ shyaml get-type 0 < test.yml
+    tag:example.com,2000:app/foo
+
+``get-value`` with ``-y`` (see section Strict YAML) will give you the
+complete yaml tagged value::
+
+    $ shyaml get-value 0 < test.yml
+    !<tag:example.com,2000:app/foo> 'bar'
+
+
+Another example::
+
+    $ cat <<EOF > test.yml
+    %TAG ! tag:clarkevans.com,2002:
+    --- !shape
+      # Use the ! handle for presenting
+      # tag:clarkevans.com,2002:circle
+    - !circle
+      center: &ORIGIN {x: 73, y: 129}
+      radius: 7
+    - !line
+      start: *ORIGIN
+      finish: { x: 89, y: 102 }
+    - !label
+      start: *ORIGIN
+      color: 0xFFEEBB
+      text: Pretty vector drawing.
+    EOF
+    $ shyaml get-type 2 < test.yml
+    tag:clarkevans.com,2002:label
+
+And you can still traverse internal value::
+
+    $ shyaml get-value -y 2.start < test.yml
+    x: 73
+    y: 129
+
+
+Note that all global tags will be resolved and simplified (as
+``!!map``, ``!!str``, ``!!seq``), but not unknown local tags::
+
+    $ cat <<EOF > test.yml
+    %YAML 1.2
+    ---
+    !!map {
+      ? !!str "sequence"
+      : !!seq [ !!str "one", !!str "two" ],
+      ? !!str "mapping"
+      : !!map {
+        ? !!str "sky" : !myobj "blue",
+        ? !!str "sea" : !!str "green",
+      },
+    }
+    EOF
+
+    $ shyaml get-value < test.yml
+    sequence:
+    - one
+    - two
+    mapping:
+      sky: !myobj 'blue'
+      sea: green
+
+
 Usage string
 ------------
 
