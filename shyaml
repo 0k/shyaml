@@ -11,9 +11,10 @@ YAML for command line.
 from __future__ import print_function
 
 import sys
-import yaml
 import os.path
 import re
+
+import yaml
 
 
 PY3 = sys.version_info[0] >= 3
@@ -92,6 +93,7 @@ Examples:
      cat hosts_config.yaml | %(exname)s get-value cfgs.myhost
 
 """ % {"exname": EXNAME, "usage": USAGE}
+
 
 ##
 ## Keep previous order in YAML

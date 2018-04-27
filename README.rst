@@ -377,7 +377,7 @@ Who am I to forbid such usage of YAML mappings ? So starting from
 version ``0.4.0``, ``shyaml`` will happily keep the order of your
 mappings::
 
-    cat <<EOF > /tmp/test.yml
+    cat <<EOF > test.yml
     mapping:
       a: 1
       c: 2
@@ -402,10 +402,10 @@ For ``shyaml`` version including and after ``0.4.0``::
 Strict YAML for further processing
 ----------------------------------
 
-Processing yaml can be done recursively and extensively through
-using the output of ``shyaml`` into ``shyaml``. Most of its output
-is itself YAML. Most ? Well, for ease of use, literal keys (string, numbers)
-are outputed directly without YAML quotes, which is often convenient.
+Processing yaml can be done recursively and extensively through using
+the output of ``shyaml`` into ``shyaml``. Most of its output is itself
+YAML. Most ? Well, for ease of use, literal keys (string, numbers) are
+outputed directly without YAML quotes, which is often convenient.
 
 But this has the consequence of introducing inconsistent behavior. So
 when processing YAML coming out of shyaml, you should probably think
