@@ -16,6 +16,14 @@ import re
 
 import yaml
 
+if os.environ.get("FORCE_PYTHON_YAML_IMPLEMENTATION"):
+    from yaml import SafeLoader, SafeDumper
+else:
+    try:
+        from yaml import CSafeLoader as SafeLoader, CSafeDumper as SafeDumper
+    except ImportError:
+        from yaml import SafeLoader, SafeDumper
+
 
 PY3 = sys.version_info[0] >= 3
 
@@ -114,7 +122,7 @@ class MyOrderedDict(OrderedDict):
     pass
 
 
-yaml.add_representer(
+SafeDumper.add_representer(
     MyOrderedDict,
     lambda cls, data: cls.represent_dict(data.items()))
 
@@ -126,7 +134,7 @@ def construct_omap(cls, node):
     return MyOrderedDict(cls.construct_pairs(node))
 
 
-yaml.add_constructor(
+SafeLoader.add_constructor(
     yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
     construct_omap)
 
@@ -157,8 +165,8 @@ def represent_encapsulated_node(s, o):
     value.tag = o.__class__.__name__
     return value
 
-yaml.add_multi_representer(EncapsulatedNode, represent_encapsulated_node)
-yaml.add_constructor(None, mk_encapsulated_node)
+SafeDumper.add_multi_representer(EncapsulatedNode, represent_encapsulated_node)
+SafeLoader.add_constructor(None, mk_encapsulated_node)
 
 
 ##
@@ -394,7 +402,7 @@ def magic_dump(value):
 
     """
     return value if isinstance(value, SIMPLE_TYPES) \
-        else yaml.dump(value, default_flow_style=False)
+        else yaml_dump(value)
 
 
 def yaml_dump(value):
@@ -403,7 +411,8 @@ def yaml_dump(value):
     Literal types are quoted and safe to use as YAML.
 
     """
-    return yaml.dump(value, default_flow_style=False)
+    return yaml.dump(value, default_flow_style=False,
+                     Dumper=SafeDumper)
 
 
 def type_name(value):
@@ -434,7 +443,7 @@ def main(args):  ## pylint: disable=too-many-branches
     action = args[0]
     key_value = None if len(args) == 1 else args[1]
     default = args[2] if len(args) > 2 else None
-    contents = yaml.load(sys.stdin)
+    contents = yaml.load(sys.stdin, Loader=SafeLoader)
 
     try:
         try:
