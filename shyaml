@@ -103,6 +103,13 @@ Examples:
 """ % {"exname": EXNAME, "usage": USAGE}
 
 
+class ShyamlSafeLoader(SafeLoader):
+    """Shyaml specific safe loader"""
+
+class ShyamlSafeDumper(SafeDumper):
+    """Shyaml specific safe dumper"""
+
+
 ##
 ## Keep previous order in YAML
 ##
@@ -122,7 +129,7 @@ class MyOrderedDict(OrderedDict):
     pass
 
 
-SafeDumper.add_representer(
+ShyamlSafeDumper.add_representer(
     MyOrderedDict,
     lambda cls, data: cls.represent_dict(data.items()))
 
@@ -134,7 +141,7 @@ def construct_omap(cls, node):
     return MyOrderedDict(cls.construct_pairs(node))
 
 
-SafeLoader.add_constructor(
+ShyamlSafeLoader.add_constructor(
     yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
     construct_omap)
 
@@ -165,8 +172,10 @@ def represent_encapsulated_node(s, o):
     value.tag = o.__class__.__name__
     return value
 
-SafeDumper.add_multi_representer(EncapsulatedNode, represent_encapsulated_node)
-SafeLoader.add_constructor(None, mk_encapsulated_node)
+
+ShyamlSafeDumper.add_multi_representer(EncapsulatedNode,
+                                       represent_encapsulated_node)
+ShyamlSafeLoader.add_constructor(None, mk_encapsulated_node)
 
 
 ##
@@ -412,7 +421,7 @@ def yaml_dump(value):
 
     """
     return yaml.dump(value, default_flow_style=False,
-                     Dumper=SafeDumper)
+                     Dumper=ShyamlSafeDumper)
 
 
 def type_name(value):
@@ -443,7 +452,7 @@ def main(args):  ## pylint: disable=too-many-branches
     action = args[0]
     key_value = None if len(args) == 1 else args[1]
     default = args[2] if len(args) > 2 else None
-    contents = yaml.load(sys.stdin, Loader=SafeLoader)
+    contents = yaml.load(sys.stdin, Loader=ShyamlSafeLoader)
 
     try:
         try:
