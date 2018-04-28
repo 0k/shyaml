@@ -163,7 +163,7 @@ Iteration through keys only::
     subvalue.how-much\more
     subvalue.how-much\.more
 
-Iteration through keys only (\0 terminated strings)::
+Iteration through keys only (``\0`` terminated strings)::
 
     $ cat test.yaml | shyaml keys-0 subvalue | xargs -0 -n 1 echo "VALUE:"
     VALUE: how-much
@@ -172,7 +172,7 @@ Iteration through keys only (\0 terminated strings)::
     VALUE: maintainer
     VALUE: description
 
-Iteration through values only (\0 terminated string highly recommended)::
+Iteration through values only (``\0`` terminated string highly recommended)::
 
     $ cat test.yaml | shyaml values-0 subvalue |
       while IFS='' read -r -d $'\0' value; do
@@ -190,7 +190,7 @@ Iteration through values only (\0 terminated string highly recommended)::
     Line 2
     '
 
-Iteration through keys and values (\0 terminated string highly recommended)::
+Iteration through keys and values (``\0`` terminated string highly recommended)::
 
     $ read-0() {
         while [ "$1" ]; do
