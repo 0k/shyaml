@@ -475,7 +475,7 @@ def main(args):  ## pylint: disable=too-many-branches
         print(dump(value), end='')
     elif action in ("get-values", "get-values-0"):
         if isinstance(value, dict):
-            for k, v in value.iteritems():
+            for k, v in value.items():
                 stdout("%s%s%s%s" % (dump(k), termination,
                                      dump(v), termination))
         elif isinstance(value, list):
