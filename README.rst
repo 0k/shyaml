@@ -5,8 +5,9 @@ SHYAML: YAML for the command line
 .. image:: https://img.shields.io/pypi/v/shyaml.svg
     :target: https://pypi.python.org/pypi/shyaml
 
-.. image:: https://travis-ci.org/0k/shyaml.svg?branch=master
-    :target: http://travis-ci.org/0k/shyaml
+.. image:: https://img.shields.io/travis/0k/shyaml/master.svg?style=flat
+   :target: https://travis-ci.org/0k/shyaml/
+   :alt: Travis CI build status
 
 
 Description
