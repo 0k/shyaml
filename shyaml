@@ -489,7 +489,7 @@ def main(args):  ## pylint: disable=too-many-branches
         print(tvalue)
     elif action == "get-length":
         if isinstance(value, (dict, list)):
-            stdout("%d\n" % len(value))
+            print(len(value))
         else:
             die("%s does not support %r type. "
                 "Please provide or select a sequence or struct."
