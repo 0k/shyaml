@@ -9,6 +9,11 @@ SHYAML: YAML for the command line
    :target: https://travis-ci.org/0k/shyaml/
    :alt: Travis CI build status
 
+.. image:: https://img.shields.io/appveyor/ci/vaab/shyaml.svg
+   :target: https://ci.appveyor.com/project/vaab/shyaml/branch/master
+   :alt: Appveyor CI build status
+
+
 
 Description
 ===========
