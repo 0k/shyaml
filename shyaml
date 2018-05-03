@@ -26,8 +26,14 @@ else:
 
 
 PY3 = sys.version_info[0] >= 3
+WIN32 = sys.platform == 'win32'
 
-EXNAME = os.path.basename(sys.argv[0])
+EXNAME = os.path.basename(__file__ if WIN32 else sys.argv[0])
+
+for ext in (".py", ".pyc", ".exe", "-script.py", "-script.pyc"):
+    if EXNAME.endswith(ext):
+        EXNAME = EXNAME[:-len(ext)]
+        break
 
 USAGE = """\
 Usage:
@@ -73,7 +79,7 @@ Options:
 
               Note that any value returned is returned on stdout, and
               when returning ``list of YAML``, it'll be separated by
-              ``\\n`` or ``NUL`` char depending of you've used the
+              a newline or ``NUL`` char depending of you've used the
               ``-0`` suffixed ACTION.
 
     KEY       Identifier to browse and target subvalues into YAML
@@ -469,6 +475,8 @@ def main(args):  ## pylint: disable=too-many-branches
                msg.replace('list', 'sequence').replace('dict', 'struct')))
 
     tvalue = type_name(value)
+    ## Note: ``\n`` will be transformed by ``universal_newlines`` mecanism for
+    ## any platform
     termination = "\0" if action.endswith("-0") else "\n"
 
     if action == "get-value":
@@ -513,5 +521,9 @@ def main(args):  ## pylint: disable=too-many-branches
         die("Invalid argument.\n%s" % USAGE)
 
 
-if __name__ == "__main__":
+def entrypoint():
     sys.exit(main(sys.argv[1:]))
+
+
+if __name__ == "__main__":
+    entrypoint()
