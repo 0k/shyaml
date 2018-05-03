@@ -4,6 +4,12 @@
 environment:
   global:
     PYTHONIOENCODING: utf-8
+
+    ## We still need to force python yaml implementation because of
+    ## small discrepancy between outputs of the C implementation and
+    ## python implementation.
+
+    FORCE_PYTHON_YAML_IMPLEMENTATION: 1
   matrix:
     - PYTHON: "C:\\Python27"
     - PYTHON: "C:\\Python27-x64"
@@ -35,11 +41,8 @@ before_test:
 
 ## Custom test script
 test_script:
-
-  ## Fail early on big problems
   - "python -m doctest shyaml.py"
-
-  - "shyaml -h"
+  - "python shtest.py README.rst"
 
 after_test:
   - "codecov & REM  #dovis: ignore"

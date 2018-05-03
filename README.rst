@@ -130,6 +130,13 @@ Get sub YAML from a structure attribute::
     $ cat test.yaml | shyaml get-type subvalue
     struct
     $ cat test.yaml | shyaml get-value subvalue
+    how-much: 1.1
+    how-many: 2
+    things:
+    - first
+    - second
+    - third
+    maintainer: Valentin Lab
     description: 'Multiline description:
 
       Line 1
@@ -137,47 +144,42 @@ Get sub YAML from a structure attribute::
       Line 2
 
       '
-    how-many: 2
-    how-much: 1.1
-    maintainer: Valentin Lab
-    things:
-    - first
-    - second
-    - third
 
 Iteration through keys only::
 
     $ cat test.yaml | shyaml keys
-    subvalue.how-much
-    subvalue
-    subvalue.how-much\.more
     name
+    subvalue
+    subvalue.how-much
     subvalue.how-much\more
+    subvalue.how-much\.more
 
 Iteration through keys only (\0 terminated strings)::
 
     $ cat test.yaml | shyaml keys-0 subvalue | xargs -0 -n 1 echo "VALUE:"
     VALUE: how-much
-    VALUE: things
     VALUE: how-many
+    VALUE: things
     VALUE: maintainer
     VALUE: description
 
 Iteration through values only (\0 terminated string highly recommended)::
 
     $ cat test.yaml | shyaml values-0 subvalue |
-      while read -r -d $'\0' value; do
+      while IFS='' read -r -d $'\0' value; do
           echo "RECEIVED: '$value'"
       done
     RECEIVED: '1.1'
+    RECEIVED: '2'
     RECEIVED: '- first
     - second
-    - third'
-    RECEIVED: '2'
+    - third
+    '
     RECEIVED: 'Valentin Lab'
     RECEIVED: 'Multiline description:
     Line 1
-    Line 2'
+    Line 2
+    '
 
 Iteration through keys and values (\0 terminated string highly recommended)::
 
@@ -186,9 +188,8 @@ Iteration through keys and values (\0 terminated string highly recommended)::
             IFS=$'\0' read -r -d '' "$1" || return 1
             shift
         done
-      }
-
-    $ cat test.yaml | shyaml key-values-0 subvalue |
+      } &&
+      cat test.yaml | shyaml key-values-0 subvalue |
       while read-0 key value; do
           echo "KEY: '$key'"
           echo "VALUE: '$value'"
@@ -197,14 +198,14 @@ Iteration through keys and values (\0 terminated string highly recommended)::
     KEY: 'how-much'
     VALUE: '1.1'
 
+    KEY: 'how-many'
+    VALUE: '2'
+
     KEY: 'things'
     VALUE: '- first
     - second
     - third
     '
-
-    KEY: 'how-many'
-    VALUE: '2'
 
     KEY: 'maintainer'
     VALUE: 'Valentin Lab'
@@ -214,6 +215,7 @@ Iteration through keys and values (\0 terminated string highly recommended)::
     Line 1
     Line 2
     '
+    <BLANKLINE>
 
 Notice, that you'll get the same result using
 ``get-values``. ``get-values`` will support sequences and struct,
@@ -247,11 +249,12 @@ More usefull, parse a list in one go with ``get-values``::
     second
     third
 
-Note that the action is called ``get-values``, and that output is separated by
-``\n`` chars, this can bring havoc if you are parsing values containing this
-character. Hopefully, ``shyaml`` has a ``get-values-0`` to terminate strings by
-``\0`` char, which allows complete support of any type of values, including
-YAML.  ``get-values`` outputs key and values for ``struct`` types and only
+Note that the action is called ``get-values``, and that output is
+separated by newline char(s) (which is os dependent), this can bring
+havoc if you are parsing values containing newlines itself. Hopefully,
+``shyaml`` has a ``get-values-0`` to terminate strings by ``\0`` char,
+which allows complete support of any type of values, including YAML.
+``get-values`` outputs key and values for ``struct`` types and only
 values for ``sequence`` types::
 
     $ cat test.yaml | shyaml get-values-0 subvalue |
@@ -260,11 +263,11 @@ values for ``sequence`` types::
           echo "'$key' -> '$value'"
       done
     'how-much' -> '1.1'
+    'how-many' -> '2'
     'things' -> '- first
     - second
     - third
     '
-    'how-many' -> '2'
     'maintainer' -> 'Valentin Lab'
     'description' -> 'Multiline description:
     Line 1
@@ -386,7 +389,7 @@ Who am I to forbid such usage of YAML mappings ? So starting from
 version ``0.4.0``, ``shyaml`` will happily keep the order of your
 mappings::
 
-    cat <<EOF > test.yml
+    $ cat <<EOF > test.yaml
     mapping:
       a: 1
       c: 2
@@ -395,14 +398,14 @@ mappings::
 
 For ``shyaml`` version before ``0.4.0``::
 
-    $ shyaml get-value mapping < test.yml
+    # shyaml get-value mapping < test.yaml
     a: 1
     b: 3
     c: 2
 
 For ``shyaml`` version including and after ``0.4.0``::
 
-    $ shyaml get-value mapping < test.yml
+    $ shyaml get-value mapping < test.yaml
     a: 1
     c: 2
     b: 3
@@ -435,25 +438,25 @@ allow parsing their internal structure.
 
 ``get-type`` will correctly give you the type of the object::
 
-    cat <<EOF > test.yml
+    $ cat <<EOF > test.yaml
     %TAG !e! tag:example.com,2000:app/
     ---
     - !e!foo "bar"
     EOF
 
-    $ shyaml get-type 0 < test.yml
+    $ shyaml get-type 0 < test.yaml
     tag:example.com,2000:app/foo
 
 ``get-value`` with ``-y`` (see section Strict YAML) will give you the
 complete yaml tagged value::
 
-    $ shyaml get-value 0 < test.yml
+    $ shyaml get-value -y 0 < test.yaml
     !<tag:example.com,2000:app/foo> 'bar'
 
 
 Another example::
 
-    $ cat <<EOF > test.yml
+    $ cat <<EOF > test.yaml
     %TAG ! tag:clarkevans.com,2002:
     --- !shape
       # Use the ! handle for presenting
@@ -469,12 +472,12 @@ Another example::
       color: 0xFFEEBB
       text: Pretty vector drawing.
     EOF
-    $ shyaml get-type 2 < test.yml
+    $ shyaml get-type 2 < test.yaml
     tag:clarkevans.com,2002:label
 
 And you can still traverse internal value::
 
-    $ shyaml get-value -y 2.start < test.yml
+    $ shyaml get-value -y 2.start < test.yaml
     x: 73
     y: 129
 
@@ -482,8 +485,8 @@ And you can still traverse internal value::
 Note that all global tags will be resolved and simplified (as
 ``!!map``, ``!!str``, ``!!seq``), but not unknown local tags::
 
-    $ cat <<EOF > test.yml
-    %YAML 1.2
+    $ cat <<EOF > test.yaml
+    %YAML 1.1
     ---
     !!map {
       ? !!str "sequence"
@@ -496,7 +499,7 @@ Note that all global tags will be resolved and simplified (as
     }
     EOF
 
-    $ shyaml get-value < test.yml
+    $ shyaml get-value < test.yaml
     sequence:
     - one
     - two
@@ -511,6 +514,7 @@ Usage string
 A quick reminder of what is available::
 
     $ shyaml --help
+
     Parses and output chosen subpart or values from YAML input.
     It reads YAML in stdin and will output on stdout it's return value.
 
@@ -538,23 +542,20 @@ A quick reminder of what is available::
                     get-type          ## returns a short string
                     get-value         ## returns YAML
 
-                  This ACTION applies to 'sequence' and 'struct' YAML type:
+                  These ACTIONs applies to 'sequence' and 'struct' YAML type:
 
-                    get-values{,-0}   ## return list of YAML
-
-                  This ACTION applies to 'sequence' and 'struct' YAML type:
-
-                    get-length        ## return length of the list of YAML
+                    get-values{,-0}   ## returns list of YAML
+                    get-length        ## returns an integer
 
                   These ACTION applies to 'struct' YAML type:
 
-                    keys{,-0}         ## return list of YAML
-                    values{,-0}       ## return list of YAML
-                    key-values,{,-0}  ## return list of YAML
+                    keys{,-0}         ## returns list of YAML
+                    values{,-0}       ## returns list of YAML
+                    key-values,{,-0}  ## returns list of YAML
 
                   Note that any value returned is returned on stdout, and
                   when returning ``list of YAML``, it'll be separated by
-                  ``\n`` or ``NUL`` char depending of you've used the
+                  a newline or ``NUL`` char depending of you've used the
                   ``-0`` suffixed ACTION.
 
         KEY       Identifier to browse and target subvalues into YAML
@@ -580,6 +581,8 @@ A quick reminder of what is available::
 
          ## get YAML config part of 'myhost'
          cat hosts_config.yaml | shyaml get-value cfgs.myhost
+
+    <BLANKLINE>
 
 
 Contributing

@@ -10,6 +10,10 @@ install:
 script:
   - python -m doctest shyaml.py
 
+  ## We still need to force python yaml implementation because of
+  ## small discrepancy between outputs of the C implementation and
+  ## python implementation.
+  - FORCE_PYTHON_YAML_IMPLEMENTATION=1 python shtest.py README.rst
 
 ## Ignored by Travis, but used internally to check packaging
 dist_check:

@@ -321,7 +321,7 @@ class MissingKeyError(KeyError):
     """Raised when querying a dict-like structure on non-existing keys"""
 
     def __str__(self):
-        return self.message
+        return self.args[0]
 
 
 class NonDictLikeTypeError(TypeError):
