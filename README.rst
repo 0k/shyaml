@@ -13,6 +13,10 @@ SHYAML: YAML for the command line
    :target: https://ci.appveyor.com/project/vaab/shyaml/branch/master
    :alt: Appveyor CI build status
 
+.. image:: http://img.shields.io/codecov/c/github/0k/shyaml.svg?style=flat
+   :target: https://codecov.io/gh/0k/shyaml/
+   :alt: Test coverage
+
 
 
 Description

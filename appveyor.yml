@@ -41,8 +41,7 @@ before_test:
 
 ## Custom test script
 test_script:
-  - "python -m doctest shyaml.py"
-  - "python shtest.py README.rst"
+  - bash bin/test
 
 after_test:
   - "codecov & REM  #dovis: ignore"
