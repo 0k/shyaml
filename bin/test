@@ -1,0 +1,18 @@
+#!/bin/bash
+
+shtest_opts=()
+
+if [ -z "$DOVIS" -o "$PKG_COVERAGE" ]; then  ## with coverage
+    python="coverage run --include ./shyaml.py -a"
+    shtest_opts+=("-r"  '#\bshyaml\b#'"$coverage"' shyaml#')
+else
+    python=python
+fi
+
+$python -m doctest shyaml.py || exit 1
+
+## We still need to force python yaml implementation because of
+## small discrepancy between outputs of the C implementation and
+## python implementation.
+FORCE_PYTHON_YAML_IMPLEMENTATION=1 \
+    ./shtest.py README.rst -r '#\bshyaml\b#'"$python"' ./shyaml.py#' || exit 1

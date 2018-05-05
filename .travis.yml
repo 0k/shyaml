@@ -6,14 +6,18 @@ python:
   - "2.7"
 install:
   - if [ -e requirements.txt ]; then pip install -r requirements.txt ; fi
-  - python setup.py develop easy_install "$(./autogen.sh --get-name)[test]"  ## getting deps
+  - if [ -z "$DOVIS" -o "$PKG_COVERAGE" ]; then pip install coverage; fi
+  ## getting test deps
+  - python setup.py develop easy_install "$(./autogen.sh --get-name)[test]"
 script:
-  - python -m doctest shyaml.py
-
-  ## We still need to force python yaml implementation because of
-  ## small discrepancy between outputs of the C implementation and
-  ## python implementation.
-  - FORCE_PYTHON_YAML_IMPLEMENTATION=1 python shtest.py README.rst
+  - bin/test
+after_success:
+  - "bash <(curl -s https://codecov.io/bash)  #dovis: ignore"
+  - |
+    if [ "$DOVIS" -a -d "$ARTIFACT_DIR" ]; then
+        cp ".coverage" "$ARTIFACT_DIR"
+        echo "$PWD" > "$ARTIFACT_DIR/cover_path"
+    fi
 
 ## Ignored by Travis, but used internally to check packaging
 dist_check:
