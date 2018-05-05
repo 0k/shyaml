@@ -22,12 +22,12 @@ SHYAML: YAML for the command line
 Description
 ===========
 
-Simple scripts that allow read access to YAML files through command line.
+Simple script that allow read access to YAML files through command line.
 
 This can be handy, if you want to get access to YAML data in your shell
 scripts.
 
-This scripts supports only read access and it might not support all
+This script supports only read access and it might not support all
 the subtleties of YAML specification. But it should support some handy
 basic query of YAML file.
 
