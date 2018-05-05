@@ -309,6 +309,7 @@ def shtest_runner(lines, regex_patterns):
                  ("%s-%s" % (start_line_nb, stop_line_nb))
                  if start_line_nb != stop_line_nb else
                  start_line_nb))
+        sys.stdout.flush()
 
 
 def split_quote(s, split_char='/', quote='\\'):
