@@ -21,7 +21,7 @@ if os.environ.get("FORCE_PYTHON_YAML_IMPLEMENTATION"):
 else:
     try:
         from yaml import CSafeLoader as SafeLoader, CSafeDumper as SafeDumper
-    except ImportError:
+    except ImportError:  ## pragma: no cover
         from yaml import SafeLoader, SafeDumper
 
 
@@ -30,8 +30,8 @@ WIN32 = sys.platform == 'win32'
 
 EXNAME = os.path.basename(__file__ if WIN32 else sys.argv[0])
 
-for ext in (".py", ".pyc", ".exe", "-script.py", "-script.pyc"):
-    if EXNAME.endswith(ext):
+for ext in (".py", ".pyc", ".exe", "-script.py", "-script.pyc"):  ## pragma: no cover
+    if EXNAME.endswith(ext):  ## pragma: no cover
         EXNAME = EXNAME[:-len(ext)]
         break
 
@@ -123,7 +123,7 @@ class ShyamlSafeDumper(SafeDumper):
 try:
     ## included in standard lib from Python 2.7
     from collections import OrderedDict
-except ImportError:
+except ImportError:  ## pragma: no cover
     ## try importing the backported drop-in replacement
     ## it's available on PyPI
     from ordereddict import OrderedDict

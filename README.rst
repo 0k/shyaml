@@ -125,6 +125,11 @@ Get length of structures or sequences::
     $ cat test.yaml | shyaml get-length subvalue.things
     3
 
+But this won't work on other types::
+
+    $ cat test.yaml | shyaml get-length name
+    Error: get-length does not support 'str' type. Please provide or select a sequence or struct.
+
 
 Parse structure
 ---------------
@@ -226,6 +231,17 @@ Notice, that you'll get the same result using
 and ``key-values`` support only struct. (for a complete table of
 which function support what you can look at the usage line)
 
+And, if you ask for keys, values, key-values on non struct like, you'll
+get an error::
+
+    $ cat test.yaml | shyaml keys name
+    Error: keys does not support 'str' type. Please provide or select a struct.
+    $ cat test.yaml | shyaml values subvalue.how-many
+    Error: values does not support 'int' type. Please provide or select a struct.
+    $ cat test.yaml | shyaml key-values subvalue.how-much
+    Error: key-values does not support 'float' type. Please provide or select a struct.
+
+
 Parse sequence
 --------------
 
@@ -245,6 +261,11 @@ And access individual elements with python-like indexing::
     $ cat test.yaml | shyaml get-value subvalue.things.5
     Error: invalid path 'subvalue.things.5', index 5 is out of range (3 elements in sequence).
 
+Note that this will work only with integer (preceded or not by a minus
+sign)::
+
+    $ cat test.yaml | shyaml get-value subvalue.things.foo
+    Error: invalid path 'subvalue.things.foo', non-integer index 'foo' provided on a sequence.
 
 More usefull, parse a list in one go with ``get-values``::
 
@@ -285,6 +306,11 @@ it is meant to be used with ``struct`` only and will complain if not.
 
 You should also notice that values that are displayed are YAML compatible. So
 if they are complex, you can re-use ``shyaml`` on them to parse their content.
+
+Of course, ``get-values`` should only be called on sequence elements::
+
+    $ cat test.yaml | shyaml get-values name
+    Error: get-values does not support 'str' type. Please provide or select a sequence or struct.
 
 
 Keys containing '.'
@@ -515,7 +541,20 @@ Note that all global tags will be resolved and simplified (as
 Usage string
 ------------
 
-A quick reminder of what is available::
+A quick reminder of what is available will be printed when calling
+``shyaml`` without any argument::
+
+    $ shyaml
+    Error: Bad number of arguments.
+    Usage:
+
+        shyaml (-h|--help)
+        shyaml [-y|--yaml] ACTION KEY [DEFAULT]
+    <BLANKLINE>
+
+The full help is available through the usage of the standard ``-h`` or
+``-help``::
+
 
     $ shyaml --help
 
@@ -586,6 +625,16 @@ A quick reminder of what is available::
          ## get YAML config part of 'myhost'
          cat hosts_config.yaml | shyaml get-value cfgs.myhost
 
+    <BLANKLINE>
+
+Using invalid keywords will issue an error and the usage message::
+
+    $ shyaml get-foo
+    Error: Invalid argument.
+    Usage:
+
+        shyaml (-h|--help)
+        shyaml [-y|--yaml] ACTION KEY [DEFAULT]
     <BLANKLINE>
 
 
