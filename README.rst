@@ -225,23 +225,27 @@ Parse sequence
 
 Query a sequence with ``get-value``::
 
-   $ cat test.yaml | shyaml get-value subvalue.things
-   - first
-   - second
-   - third
-   $ cat test.yaml | shyaml get-value subvalue.things.0
-   first
-   $ cat test.yaml | shyaml get-value subvalue.things.-1
-   third
-   $ cat test.yaml | shyaml get-value subvalue.things.5
-   Error: invalid path 'subvalue.things.5', index 5 is out of range (3 elements in sequence).
+    $ cat test.yaml | shyaml get-value subvalue.things
+    - first
+    - second
+    - third
+
+And access individual elements with python-like indexing::
+
+    $ cat test.yaml | shyaml get-value subvalue.things.0
+    first
+    $ cat test.yaml | shyaml get-value subvalue.things.-1
+    third
+    $ cat test.yaml | shyaml get-value subvalue.things.5
+    Error: invalid path 'subvalue.things.5', index 5 is out of range (3 elements in sequence).
+
 
 More usefull, parse a list in one go with ``get-values``::
 
-   $ cat test.yaml | shyaml get-values subvalue.things
-   first
-   second
-   third
+    $ cat test.yaml | shyaml get-values subvalue.things
+    first
+    second
+    third
 
 Note that the action is called ``get-values``, and that output is separated by
 ``\n`` chars, this can bring havoc if you are parsing values containing this
@@ -347,21 +351,20 @@ As of version < 0.3, this argument was defaulted to the empty
 string. For all version above 0.3 (included), if not provided, then
 an error message will be printed::
 
-   $ echo "a: 3" | shyaml get-value a mydefault
-   3
+    $ echo "a: 3" | shyaml get-value a mydefault
+    3
 
-   $ echo "a: 3" | shyaml get-value b mydefault
-   mydefault
+    $ echo "a: 3" | shyaml get-value b mydefault
+    mydefault
 
-   $ echo "a: 3" | shyaml get-value b
-   Error: invalid path 'b', missing key 'b' in struct.
+    $ echo "a: 3" | shyaml get-value b
+    Error: invalid path 'b', missing key 'b' in struct.
 
 
 You can emulate pre v0.3 behavior by specifying explicitely an empty
 string as third argument::
 
-   $ echo "a: 3" | shyaml get-value b ''
-   $
+    $ echo "a: 3" | shyaml get-value b ''
 
 
 Ordered mappings
