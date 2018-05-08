@@ -373,8 +373,8 @@ The first asks for keys of the root YAML, the second asks for keys of the
 content of the empty string named element located in the root YAML.
 
 
-Default Value
--------------
+Handling missing paths
+----------------------
 
 There is a third argument on the command line of shyaml which is the
 DEFAULT argument. If the given KEY was not found in the YAML
@@ -393,11 +393,18 @@ an error message will be printed::
     $ echo "a: 3" | shyaml get-value b
     Error: invalid path 'b', missing key 'b' in struct.
 
-
 You can emulate pre v0.3 behavior by specifying explicitely an empty
 string as third argument::
 
     $ echo "a: 3" | shyaml get-value b ''
+
+Starting with version 0.6, you can also use the ``-q`` or ``--quiet`` to fail
+silently in case of KEY not found in the YAML structure::
+
+    $ echo "a: 3" | shyaml -q get-value b; echo "errlvl: $?"
+    errlvl: 1
+    $ echo "a: 3" | shyaml -q get-value a; echo "errlvl: $?"
+    3errlvl: 0
 
 
 Ordered mappings
@@ -549,7 +556,7 @@ A quick reminder of what is available will be printed when calling
     Usage:
 
         shyaml (-h|--help)
-        shyaml [-y|--yaml] ACTION KEY [DEFAULT]
+        shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
     <BLANKLINE>
 
 The full help is available through the usage of the standard ``-h`` or
@@ -564,7 +571,7 @@ The full help is available through the usage of the standard ``-h`` or
     Usage:
 
         shyaml (-h|--help)
-        shyaml [-y|--yaml] ACTION KEY [DEFAULT]
+        shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
 
 
     Options:
@@ -576,6 +583,12 @@ The full help is available through the usage of the standard ``-h`` or
                   further process it. If you know you have are dealing
                   with safe literal value, then you don't need this.
                   (Default: no safe YAML output)
+
+        -q, --quiet
+                  In case KEY value queried is an invalid path, quiet
+                  mode will prevent the writing of an error message on
+                  standard error.
+                  (Default: no quiet mode)
 
         ACTION    Depending on the type of data you've targetted
                   thanks to the KEY, ACTION can be:
@@ -634,7 +647,7 @@ Using invalid keywords will issue an error and the usage message::
     Usage:
 
         shyaml (-h|--help)
-        shyaml [-y|--yaml] ACTION KEY [DEFAULT]
+        shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
     <BLANKLINE>
 
 

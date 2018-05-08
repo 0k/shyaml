@@ -39,7 +39,7 @@ USAGE = """\
 Usage:
 
     %(exname)s (-h|--help)
-    %(exname)s [-y|--yaml] ACTION KEY [DEFAULT]
+    shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
 """ % {"exname": EXNAME}
 
 HELP = """
@@ -57,6 +57,12 @@ Options:
               further process it. If you know you have are dealing
               with safe literal value, then you don't need this.
               (Default: no safe YAML output)
+
+    -q, --quiet
+              In case KEY value queried is an invalid path, quiet
+              mode will prevent the writing of an error message on
+              standard error.
+              (Default: no quiet mode)
 
     ACTION    Depending on the type of data you've targetted
               thanks to the KEY, ACTION can be:
@@ -447,6 +453,12 @@ def main(args):  ## pylint: disable=too-many-branches
             args.remove(arg)
             dump = yaml_dump
 
+    quiet = False
+    for arg in ["-q", "--quiet"]:
+        if arg in args:
+            args.remove(arg)
+            quiet = True
+
     if len(args) == 0:
         stderr("Error: Bad number of arguments.\n")
         die(USAGE, errlvl=1, prefix="")
@@ -470,9 +482,12 @@ def main(args):  ## pylint: disable=too-many-branches
     except (IndexOutOfRange, MissingKeyError,
             NonDictLikeTypeError, IndexNotIntegerError) as exc:
         msg = str(exc)
-        die("invalid path %r, %s"
-            % (key_value,
-               msg.replace('list', 'sequence').replace('dict', 'struct')))
+        if not quiet:
+            die("invalid path %r, %s"
+                % (key_value,
+                   msg.replace('list', 'sequence').replace('dict', 'struct')))
+        else:
+            exit(1)
 
     tvalue = type_name(value)
     ## Note: ``\n`` will be transformed by ``universal_newlines`` mecanism for
