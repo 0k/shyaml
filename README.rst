@@ -651,6 +651,33 @@ Using invalid keywords will issue an error and the usage message::
     <BLANKLINE>
 
 
+Python API
+==========
+
+``shyaml`` can be used from within python if you need so::
+
+    >>> import shyaml
+    >>> try:
+    ...     from StringIO import StringIO
+    ... except ImportError:
+    ...     from io import StringIO
+
+    >>> yaml_content = StringIO("""
+    ... a: 1.1
+    ... b:
+    ...   x: foo
+    ...   y: bar
+    ... """)
+
+    >>> shyaml.do(stream=yaml_content,
+    ...           action="get-type",
+    ...           key="a")
+    'float'
+
+You can have a peek at the code, the ``do(..)`` function has a documented
+prototype.
+
+
 Contributing
 ============
 

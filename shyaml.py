@@ -13,8 +13,10 @@ from __future__ import print_function
 import sys
 import os.path
 import re
+import textwrap
 
 import yaml
+
 
 if os.environ.get("FORCE_PYTHON_YAML_IMPLEMENTATION"):
     from yaml import SafeLoader, SafeDumper
@@ -39,7 +41,7 @@ USAGE = """\
 Usage:
 
     %(exname)s (-h|--help)
-    shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
+    %(exname)s [-y|--yaml] ACTION KEY [DEFAULT]
 """ % {"exname": EXNAME}
 
 HELP = """
@@ -57,12 +59,6 @@ Options:
               further process it. If you know you have are dealing
               with safe literal value, then you don't need this.
               (Default: no safe YAML output)
-
-    -q, --quiet
-              In case KEY value queried is an invalid path, quiet
-              mode will prevent the writing of an error message on
-              standard error.
-              (Default: no quiet mode)
 
     ACTION    Depending on the type of data you've targetted
               thanks to the KEY, ACTION can be:
@@ -422,7 +418,7 @@ def magic_dump(value):
     instance). But complex type are written in a YAML useable format.
 
     """
-    return value if isinstance(value, SIMPLE_TYPES) \
+    return str(value) if isinstance(value, SIMPLE_TYPES) \
         else yaml_dump(value)
 
 
@@ -433,7 +429,7 @@ def yaml_dump(value):
 
     """
     return yaml.dump(value, default_flow_style=False,
-                     Dumper=ShyamlSafeDumper)
+                      Dumper=ShyamlSafeDumper)
 
 
 def type_name(value):
@@ -444,20 +440,20 @@ def type_name(value):
            type(value).__name__
 
 
-def main(args):  ## pylint: disable=too-many-branches
-    """Entrypoint of the whole application"""
+def _parse_args(args, USAGE, HELP):
+    opts = {}
 
-    dump = magic_dump
+    opts["dump"] = magic_dump
     for arg in ["-y", "--yaml"]:
         if arg in args:
             args.remove(arg)
-            dump = yaml_dump
+            opts["dump"] = yaml_dump
 
-    quiet = False
+    opts["quiet"] = False
     for arg in ["-q", "--quiet"]:
         if arg in args:
             args.remove(arg)
-            quiet = True
+            opts["quiet"] = True
 
     if len(args) == 0:
         stderr("Error: Bad number of arguments.\n")
@@ -467,14 +463,28 @@ def main(args):  ## pylint: disable=too-many-branches
         stdout(HELP)
         exit(0)
 
-    action = args[0]
-    key_value = None if len(args) == 1 else args[1]
-    default = args[2] if len(args) > 2 else None
-    contents = yaml.load(sys.stdin, Loader=ShyamlSafeLoader)
+    opts["action"] = args[0]
+    opts["key"] = None if len(args) == 1 else args[1]
+    opts["default"] = args[2] if len(args) > 2 else None
 
+    return opts
+
+
+class InvalidPath(KeyError):
+    """Invalid Path"""
+
+    def __str__(self):
+        return self.args[0]
+
+
+class InvalidAction(KeyError):
+    """Invalid Action"""
+
+
+def traverse(contents, path, default=None):
     try:
         try:
-            value = mget(contents, key_value)
+            value = mget(contents, path)
         except (IndexOutOfRange, MissingKeyError):
             if default is None:
                 raise
@@ -482,41 +492,55 @@ def main(args):  ## pylint: disable=too-many-branches
     except (IndexOutOfRange, MissingKeyError,
             NonDictLikeTypeError, IndexNotIntegerError) as exc:
         msg = str(exc)
-        if not quiet:
-            die("invalid path %r, %s"
-                % (key_value,
-                   msg.replace('list', 'sequence').replace('dict', 'struct')))
-        else:
-            exit(1)
+        raise InvalidPath(
+            "invalid path %r, %s"
+            % (path, msg.replace('list', 'sequence').replace('dict', 'struct')))
+    return value
 
+
+class ActionTypeError(Exception):
+
+    def __init__(self, action, provided, expected):
+        self.action = action
+        self.provided = provided
+        self.expected = expected
+
+    def __str__(self):
+        return ("%s does not support %r type. "
+                "Please provide or select a %s."
+                % (self.action, self.provided,
+                   self.expected[0] if len(self.expected) == 1 else
+                   ("%s or %s" % (", ".join(self.expected[:-1]),
+                                  self.expected[-1]))))
+
+
+def act(action, value, dump=yaml_dump):
     tvalue = type_name(value)
     ## Note: ``\n`` will be transformed by ``universal_newlines`` mecanism for
     ## any platform
     termination = "\0" if action.endswith("-0") else "\n"
 
     if action == "get-value":
-        print(dump(value), end='')
+        return str(dump(value))
     elif action in ("get-values", "get-values-0"):
         if isinstance(value, dict):
-            for k, v in value.items():
-                stdout("%s%s%s%s" % (dump(k), termination,
-                                     dump(v), termination))
+            return "".join("".join((dump(k), termination,
+                                    dump(v), termination))
+                           for k, v in value.items())
         elif isinstance(value, list):
-            for l in value:
-                stdout("%s%s" % (dump(l), termination))
+            return "".join("".join((dump(l), termination))
+                           for l in value)
         else:
-            die("%s does not support %r type. "
-                "Please provide or select a sequence or struct."
-                % (action, tvalue))
+            raise ActionTypeError(
+                action, provided=tvalue, expected=["sequence", "struct"])
     elif action == "get-type":
-        print(tvalue)
+        return tvalue
     elif action == "get-length":
         if isinstance(value, (dict, list)):
-            print(len(value))
+            return len(value)
         else:
-            die("%s does not support %r type. "
-                "Please provide or select a sequence or struct."
-                % (action, tvalue))
+            raise ActionTypeError(
+                action, provided=tvalue, expected=["sequence", "struct"])
     elif action in ("keys", "keys-0",
                     "values", "values-0",
                     "key-values", "key-values-0"):
@@ -527,13 +551,148 @@ def main(args):  ## pylint: disable=too-many-branches
             output = (lambda x: termination.join(str(dump(e)) for e in x)) \
                 if action.startswith("key-values") else \
                 dump
-            for k in method():
-                stdout("%s%s" % (output(k), termination))
+            return "".join("".join((str(output(k)), termination)) for k in method())
         else:
-            die("%s does not support %r type. "
-                "Please provide or select a struct." % (action, tvalue))
+            raise ActionTypeError(
+                action=action, provided=tvalue, expected=["struct"])
     else:
+        raise InvalidAction(action)
+
+
+def do(stream, action, key, default=None, dump=yaml_dump):
+    """Return string representation of target value in stream YAML
+
+    The key is used for traversal of the YAML structure to target
+    the value that will be dumped.
+
+    :param stream:  file like input yaml content
+    :param action:  string identifying one of the possible supported actions
+    :param key:     string dotted expression to traverse yaml input
+    :param default: optional default value in case of missing end value when
+                    traversing input yaml.  (default is ``None``)
+    :param dump:    callable that will be given python objet to dump in yaml
+                    (default is ``yaml_dump``)
+    :return:        string representation of targetted inner yaml value
+
+    :raises ActionTypeError: when there's a type mismatch between the
+        action selected and the type of the targetted value.
+        (ie: action 'key-values' on non-struct)
+    :raises InvalidAction: when selected action is not a recognised valid
+        action identifier.
+    :raises InvalidPath: upon inexistent content when traversing YAML
+        input following the key specification.
+
+    """
+    contents = yaml.load(stream, Loader=ShyamlSafeLoader)
+    value = traverse(contents, key, default=default)
+    return act(action, value, dump=dump)
+
+
+def main(args):  ## pylint: disable=too-many-branches
+    """Entrypoint of the whole commandline application"""
+
+    EXNAME = os.path.basename(__file__ if WIN32 else sys.argv[0])
+
+    for ext in (".py", ".pyc", ".exe", "-script.py", "-script.pyc"):  ## pragma: no cover
+        if EXNAME.endswith(ext):  ## pragma: no cover
+            EXNAME = EXNAME[:-len(ext)]
+            break
+
+    USAGE = """\
+    Usage:
+
+        %(exname)s (-h|--help)
+        %(exname)s [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
+    """ % {"exname": EXNAME}
+
+    HELP = """
+    Parses and output chosen subpart or values from YAML input.
+    It reads YAML in stdin and will output on stdout it's return value.
+
+%(usage)s
+
+    Options:
+
+        -y, --yaml
+                  Output only YAML safe value, more precisely, even
+                  literal values will be YAML quoted. This behavior
+                  is required if you want to output YAML subparts and
+                  further process it. If you know you have are dealing
+                  with safe literal value, then you don't need this.
+                  (Default: no safe YAML output)
+
+        -q, --quiet
+                  In case KEY value queried is an invalid path, quiet
+                  mode will prevent the writing of an error message on
+                  standard error.
+                  (Default: no quiet mode)
+
+        ACTION    Depending on the type of data you've targetted
+                  thanks to the KEY, ACTION can be:
+
+                  These ACTIONs applies to any YAML type:
+
+                    get-type          ## returns a short string
+                    get-value         ## returns YAML
+
+                  These ACTIONs applies to 'sequence' and 'struct' YAML type:
+
+                    get-values{,-0}   ## returns list of YAML
+                    get-length        ## returns an integer
+
+                  These ACTION applies to 'struct' YAML type:
+
+                    keys{,-0}         ## returns list of YAML
+                    values{,-0}       ## returns list of YAML
+                    key-values,{,-0}  ## returns list of YAML
+
+                  Note that any value returned is returned on stdout, and
+                  when returning ``list of YAML``, it'll be separated by
+                  a newline or ``NUL`` char depending of you've used the
+                  ``-0`` suffixed ACTION.
+
+        KEY       Identifier to browse and target subvalues into YAML
+                  structure. Use ``.`` to parse a subvalue. If you need
+                  to use a literal ``.`` or ``\\``, use ``\\`` to quote it.
+
+                  Use struct keyword to browse ``struct`` YAML data and use
+                  integers to browse ``sequence`` YAML data.
+
+        DEFAULT   if not provided and given KEY do not match any value in
+                  the provided YAML, then DEFAULT will be returned. If no
+                  default is provided and the KEY do not match any value
+                  in the provided YAML, %(exname)s will fail with an error
+                  message.
+
+    Examples:
+
+         ## get last grocery
+         cat recipe.yaml       | %(exname)s get-value groceries.-1
+
+         ## get all words of my french dictionary
+         cat dictionaries.yaml | %(exname)s keys-0 french.dictionary
+
+         ## get YAML config part of 'myhost'
+         cat hosts_config.yaml | %(exname)s get-value cfgs.myhost
+
+    """ % {"exname": EXNAME, "usage": USAGE}
+
+    USAGE = textwrap.dedent(USAGE)
+    HELP = textwrap.dedent(HELP)
+
+    opts = _parse_args(args, USAGE, HELP)
+    quiet = opts.pop("quiet")
+
+    try:
+        ret = do(stream=sys.stdin, **opts)
+    except (InvalidPath, ActionTypeError) as e:
+        if quiet:
+            exit(1)
+        else:
+            die(str(e))
+    except InvalidAction as e:
         die("Invalid argument.\n%s" % USAGE)
+    print(ret, end="")
 
 
 def entrypoint():
@@ -541,4 +700,4 @@ def entrypoint():
 
 
 if __name__ == "__main__":
-    entrypoint()
+    sys.exit(main(sys.argv[1:]))

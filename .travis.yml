@@ -65,9 +65,11 @@ dist_check:
       - |
         ln -sf $PWD/$(./autogen.sh --get-name) /usr/local/bin/
         pip install pyyaml
+        export PYTHONPATH="$PWD"
         touch /tmp/not-installed
 
   - |
+    SRC=$PWD
     cd /tmp
     cat <<EOF | shyaml get-value c.d
     a: b
@@ -75,7 +77,11 @@ dist_check:
       d: 1
     EOF
   - |
+    cd /tmp
+    echo PYTHONPATH: $PYTHONPATH
+    python -c 'import shyaml'
+  - |
     [ -e /tmp/not-installed ] || {
-        cd "$OLDPWD"
+        cd "$SRC"
         pip uninstall -y $(./autogen.sh --get-name)
     }

@@ -10,6 +10,7 @@ else
 fi
 
 $python -m doctest shyaml.py || exit 1
+$python -m doctest README.rst || exit 1
 
 ## We still need to force python yaml implementation because of
 ## small discrepancy between outputs of the C implementation and
