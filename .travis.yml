@@ -62,11 +62,11 @@ dist_check:
           pip show -f $(./autogen.sh --get-name)
           pip list
       'no':
-      - |
-        ln -sf $PWD/$(./autogen.sh --get-name) /usr/local/bin/
-        pip install pyyaml
-        export PYTHONPATH="$PWD"
-        touch /tmp/not-installed
+        - |
+          ln -sf $PWD/$(./autogen.sh --get-name) /usr/local/bin/
+          pip install pyyaml
+          export PYTHONPATH="$PWD"
+          touch /tmp/not-installed
 
   - |
     SRC=$PWD
