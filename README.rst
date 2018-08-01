@@ -313,6 +313,133 @@ Of course, ``get-values`` should only be called on sequence elements::
     Error: get-values does not support 'str' type. Please provide or select a sequence or struct.
 
 
+Parse YAML document streams
+---------------------------
+
+YAML input can be a stream of documents, the action will then be
+applied to each document::
+
+    $ i=0; while true; do
+          ((i++))
+          echo "ingests:"
+          echo " - data: xxx"
+          echo "   id: tag-$i"
+          if ((i >= 3)); then
+              break
+          fi
+          echo "---"
+    done | shyaml get-value ingests.0.id | tr '\0' '&'
+    tag-1&tag-2&tag-3
+
+
+Notice that ``NUL`` char is used by default for separating output
+iterations if not used in ``-y`` mode. You can use that to separate
+each output.  ``-y`` mode will use conventional YAML way to separate
+documents (which is ``---``).
+
+So::
+
+    $ i=0; while true; do
+          ((i++))
+          echo "ingests:"
+          echo " - data: xxx"
+          echo "   id: tag-$i"
+          if ((i >= 3)); then
+              break
+          fi
+          echo "---"
+    done | shyaml get-value -y ingests.0.id
+    tag-1
+    ...
+    ---
+    tag-2
+    ...
+    ---
+    tag-3
+    ...
+
+Notice that it is not supported to use any query that can output more than one
+value (like all the query that can be suffixed with ``*-0``) with a multi-document
+YAML::
+
+    $ i=0; while true; do
+          ((i++))
+          echo "ingests:"
+          echo " - data: xxx"
+          echo "   id: tag-$i"
+          if ((i >= 3)); then
+              break
+          fi
+          echo "---"
+    done | shyaml keys ingests.0 | tr '\0' '&'
+    Error: Source YAML is multi-document, which doesn't support any other action than get-type, get-length, get-value
+    data
+    id
+
+You'll probably notice also, that output seems buffered. The previous
+content is displayed as a whole only at the end. If you need a
+continuous flow of YAML document, then the command line option ``-L``
+is required to force a non-buffered line-by-line reading of the file
+so as to ensure that each document is properly parsed as soon as
+possible. That means as soon as either a YAML document end is detected
+(``---`` or ``EOF``):
+
+Without the ``-L``, if we kill our shyaml process before the end::
+
+    $ i=0; while true; do
+          ((i++))
+          echo "ingests:"
+          echo " - data: xxx"
+          echo "   id: tag-$i"
+          if ((i >= 2)); then
+              break
+          fi
+          echo "---"
+          sleep 10
+    done 2>/dev/null | shyaml get-value ingests.0.id & pid=$! ; sleep 2; kill $pid
+
+
+With the ``-L``, if we kill our shyaml process before the end::
+
+    $ i=0; while true; do
+          ((i++))
+          echo "ingests:"
+          echo " - data: xxx"
+          echo "   id: tag-$i"
+          if ((i >= 2)); then
+              break
+          fi
+          echo "---"
+          sleep 10
+    done 2>/dev/null | shyaml get-value -L ingests.0.id & pid=$! ; sleep 2; kill $pid
+    tag-1
+
+
+Using ``-y`` is required to force a YAML output that will be also parseable as a stream,
+which could help you chain shyaml calls::
+
+    $ i=0; while true; do
+          ((i++))
+          echo "ingests:"
+          echo " - data: xxx"
+          echo "   id: tag-$i"
+          if ((i >= 3)); then
+              break
+          fi
+          echo "---"
+          sleep 0.2
+    done | shyaml get-value ingests.0 -L -y | shyaml get-value id | tr '\0' '\n'
+    tag-1
+    tag-2
+    tag-3
+
+
+An empty string will be still considered as an empty YAML document::
+
+    $ echo | shyaml get-value "toto"
+    Error: invalid path 'toto', can't query subvalue 'toto' of a leaf (leaf value is None).
+
+
 Keys containing '.'
 -------------------
 
@@ -590,6 +717,16 @@ The full help is available through the usage of the standard ``-h`` or
                   standard error.
                   (Default: no quiet mode)
 
+        -L, --line-buffer
+                  Force parsing stdin line by line allowing to process
+                  streamed YAML as it is fed instead of buffering
+                  input and treating several YAML streamed document
+                  at once. This is likely to have some small performance
+                  hit if you have a huge stream of YAML document, but
+                  then you probably don't really care about the
+                  line-buffering.
+                  (Default: no line buffering)
+
         ACTION    Depending on the type of data you've targetted
                   thanks to the KEY, ACTION can be:
 
@@ -643,7 +780,7 @@ The full help is available through the usage of the standard ``-h`` or
 Using invalid keywords will issue an error and the usage message::
 
     $ shyaml get-foo
-    Error: Invalid argument.
+    Error: 'get-foo' is not a valid action.
     Usage:
 
         shyaml (-h|--help)
@@ -669,10 +806,15 @@ Python API
     ...   y: bar
     ... """)
 
-    >>> shyaml.do(stream=yaml_content,
-    ...           action="get-type",
-    ...           key="a")
+    >>> for out in shyaml.do(stream=yaml_content,
+    ...                      action="get-type",
+    ...                      key="a"):
+    ...    print(repr(out))
     'float'
+
+Please note that ``shyaml.do(..)`` outputs a generator iterating
+through all the yaml documents of the stream. In most usage case,
+you'll have only one document.
 
 You can have a peek at the code, the ``do(..)`` function has a documented
 prototype.

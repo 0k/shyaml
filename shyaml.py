@@ -114,8 +114,32 @@ Examples:
 class ShyamlSafeLoader(SafeLoader):
     """Shyaml specific safe loader"""
 
+
 class ShyamlSafeDumper(SafeDumper):
     """Shyaml specific safe dumper"""
+
+
+## Ugly way to force both the Cython code and the normal code
+## to get the output line by line.
+class ForcedLineStream(object):
+
+    def __init__(self, fileobj):
+        self._file = fileobj
+
+    def read(self, size=-1):
+        ## don't care about size
+        return self._file.readline()
+
+    def close(self):
+        return self._file.close()
+
+
+class LineLoader(ShyamlSafeLoader):
+    """Forcing stream in line buffer mode"""
+
+    def __init__(self, stream):
+        stream = ForcedLineStream(stream)
+        super(LineLoader, self).__init__(stream)
 
 
 ##
@@ -410,6 +434,9 @@ def die(msg, errlvl=1, prefix="Error: "):
 SIMPLE_TYPES = (str if PY3 else basestring, int, float, type(None))
 COMPLEX_TYPES = (list, dict)
 
+## these are not composite values
+ACTION_SUPPORTING_STREAMING=["get-type", "get-length", "get-value"]
+
 
 def magic_dump(value):
     """Returns a representation of values directly usable by bash.
@@ -455,6 +482,13 @@ def _parse_args(args, USAGE, HELP):
             args.remove(arg)
             opts["quiet"] = True
 
+    for arg in ["-L", "--line-buffer"]:
+        if arg not in args:
+            continue
+        args.remove(arg)
+
+        opts["loader"] = LineLoader
+
     if len(args) == 0:
         stderr("Error: Bad number of arguments.\n")
         die(USAGE, errlvl=1, prefix="")
@@ -462,6 +496,19 @@ def _parse_args(args, USAGE, HELP):
     if len(args) == 1 and args[0] in ("-h", "--help"):
         stdout(HELP)
         exit(0)
+
+    ## XXXvlab: this validation is violating DRY, and probably
+    ## is a string hint to move away from the current keyword with
+    ## hints of language (namely the "-0" postfix).
+    if args[0] not in ["get-value",
+                       "get-values", "get-values-0",
+                       "get-type", "get-length",
+                       "keys", "keys-0",
+                       "values", "values-0",
+                       "key-values", "key-values-0"]:
+        stderr("Error: %r is not a valid action.\n"
+               % args[0])
+        die(USAGE, errlvl=1, prefix="")
 
     opts["action"] = args[0]
     opts["key"] = None if len(args) == 1 else args[1]
@@ -559,7 +606,8 @@ def act(action, value, dump=yaml_dump):
         raise InvalidAction(action)
 
 
-def do(stream, action, key, default=None, dump=yaml_dump):
+def do(stream, action, key, default=None, dump=yaml_dump,
+       loader=ShyamlSafeLoader):
     """Return string representation of target value in stream YAML
 
     The key is used for traversal of the YAML structure to target
@@ -572,6 +620,8 @@ def do(stream, action, key, default=None, dump=yaml_dump):
                     traversing input yaml.  (default is ``None``)
     :param dump:    callable that will be given python objet to dump in yaml
                     (default is ``yaml_dump``)
+    :param loader:  PYYaml's *Loader subclass to parse YAML
+                    (default is ShyamlSafeLoader)
     :return:        string representation of targetted inner yaml value
 
     :raises ActionTypeError: when there's a type mismatch between the
@@ -583,10 +633,15 @@ def do(stream, action, key, default=None, dump=yaml_dump):
         input following the key specification.
 
     """
-    contents = yaml.load(stream, Loader=ShyamlSafeLoader)
-    value = traverse(contents, key, default=default)
-    return act(action, value, dump=dump)
+    at_least_one_content=False
+    for content in yaml.load_all(stream, Loader=loader):
+        at_least_one_content=True
+        value = traverse(content, key, default=default)
+        yield act(action, value, dump=dump)
 
+    if at_least_one_content is False:
+        value = traverse(None, key, default=default)
+        yield act(action, value, dump=dump)
 
 def main(args):  ## pylint: disable=too-many-branches
     """Entrypoint of the whole commandline application"""
@@ -626,6 +681,16 @@ def main(args):  ## pylint: disable=too-many-branches
                   mode will prevent the writing of an error message on
                   standard error.
                   (Default: no quiet mode)
+
+        -L, --line-buffer
+                  Force parsing stdin line by line allowing to process
+                  streamed YAML as it is fed instead of buffering
+                  input and treating several YAML streamed document
+                  at once. This is likely to have some small performance
+                  hit if you have a huge stream of YAML document, but
+                  then you probably don't really care about the
+                  line-buffering.
+                  (Default: no line buffering)
 
         ACTION    Depending on the type of data you've targetted
                   thanks to the KEY, ACTION can be:
@@ -684,7 +749,25 @@ def main(args):  ## pylint: disable=too-many-branches
     quiet = opts.pop("quiet")
 
     try:
-        ret = do(stream=sys.stdin, **opts)
+        first = True
+        for output in do(stream=sys.stdin, **opts):
+            if first:
+                first = False
+            else:
+                if opts["action"] not in ACTION_SUPPORTING_STREAMING:
+                    die("Source YAML is multi-document, "
+                        "which doesn't support any other action than %s"
+                        % ", ".join(ACTION_SUPPORTING_STREAMING))
+                if opts["dump"] is yaml_dump:
+                    print("---\n", end="")
+                else:
+                    print("\0", end="")
+                if opts.get("loader") is LineLoader:
+                    sys.stdout.flush()
+
+            print(output, end="")
+            if opts.get("loader") is LineLoader:
+                sys.stdout.flush()
     except (InvalidPath, ActionTypeError) as e:
         if quiet:
             exit(1)
@@ -692,7 +775,6 @@ def main(args):  ## pylint: disable=too-many-branches
             die(str(e))
     except InvalidAction as e:
         die("Invalid argument.\n%s" % USAGE)
-    print(ret, end="")
 
 
 def entrypoint():
