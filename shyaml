@@ -454,7 +454,7 @@ def main(args):  ## pylint: disable=too-many-branches
     termination = "\0" if action.endswith("-0") else "\n"
 
     if action == "get-value":
-        print(dump(value), end='')
+        print(dump(value).encode('utf-8'), end='')
     elif action in ("get-values", "get-values-0"):
         if isinstance(value, dict):
             for k, v in value.iteritems():
