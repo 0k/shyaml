@@ -45,8 +45,8 @@ test_script:
 
 after_test:
   - "codecov & REM  #dovis: ignore"
-  - |
-    IF DEFINED DOVIS IF DEFINED ARTIFACT_DIR IF EXIST .coverage (
-        cp .coverage %ARTIFACT_DIR%
+  - "IF DEFINED DOVIS IF DEFINED ARTIFACT_DIR IF EXIST .coverage (
+        cp .coverage %ARTIFACT_DIR% &&
         echo %cd% > %ARTIFACT_DIR%/cover_path
-    )
+    )"
+
