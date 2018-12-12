@@ -251,7 +251,7 @@ def tokenize(s):
 
     """
     if s is None:
-        raise StopIteration
+        return
     tokens = (re.sub(r'\\(\\|\.)', r'\1', m.group(0))
               for m in re.finditer(r'((\\.|[^.\\])*)', s))
     ## an empty string superfluous token is added after all non-empty token
