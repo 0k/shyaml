@@ -456,7 +456,7 @@ def yaml_dump(value):
 
     """
     return yaml.dump(value, default_flow_style=False,
-                      Dumper=ShyamlSafeDumper)
+                     Dumper=ShyamlSafeDumper)
 
 
 def type_name(value):
@@ -498,8 +498,8 @@ def _parse_args(args, USAGE, HELP):
         exit(0)
 
     ## XXXvlab: this validation is violating DRY, and probably
-    ## is a string hint to move away from the current keyword with
-    ## hints of language (namely the "-0" postfix).
+    ## is a strong hint to move away from the current keyword querying
+    ## system as it has aspects of a language (namely the "-0" postfix).
     if args[0] not in ["get-value",
                        "get-values", "get-values-0",
                        "get-type", "get-length",
@@ -633,15 +633,16 @@ def do(stream, action, key, default=None, dump=yaml_dump,
         input following the key specification.
 
     """
-    at_least_one_content=False
+    at_least_one_content = False
     for content in yaml.load_all(stream, Loader=loader):
-        at_least_one_content=True
+        at_least_one_content = True
         value = traverse(content, key, default=default)
         yield act(action, value, dump=dump)
 
     if at_least_one_content is False:
         value = traverse(None, key, default=default)
         yield act(action, value, dump=dump)
+
 
 def main(args):  ## pylint: disable=too-many-branches
     """Entrypoint of the whole commandline application"""
