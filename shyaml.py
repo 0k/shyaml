@@ -40,7 +40,7 @@ for ext in (".py", ".pyc", ".exe", "-script.py", "-script.pyc"):  ## pragma: no 
 USAGE = """\
 Usage:
 
-    %(exname)s (-h|--help)
+    %(exname)s {-h|--help}
     %(exname)s [-y|--yaml] ACTION KEY [DEFAULT]
 """ % {"exname": EXNAME}
 
@@ -647,7 +647,7 @@ def main(args):  ## pylint: disable=too-many-branches
     USAGE = """\
     Usage:
 
-        %(exname)s (-h|--help)
+        %(exname)s {-h|--help}
         %(exname)s [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
     """ % {"exname": EXNAME}
 

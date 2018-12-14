@@ -693,7 +693,7 @@ A quick reminder of what is available will be printed when calling
     Error: Bad number of arguments.
     Usage:
 
-        shyaml (-h|--help)
+        shyaml {-h|--help}
         shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
     <BLANKLINE>
 
@@ -708,7 +708,7 @@ The full help is available through the usage of the standard ``-h`` or
 
     Usage:
 
-        shyaml (-h|--help)
+        shyaml {-h|--help}
         shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
 
 
@@ -794,7 +794,7 @@ Using invalid keywords will issue an error and the usage message::
     Error: 'get-foo' is not a valid action.
     Usage:
 
-        shyaml (-h|--help)
+        shyaml {-h|--help}
         shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
     <BLANKLINE>
 
