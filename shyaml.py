@@ -139,7 +139,9 @@ class ForcedLineStream(object):
         return self._file.readline()
 
     def close(self):
-        return self._file.close()
+        ## XXXvlab: for some reason, ``.close(..)`` doesn't seem to
+        ## be used by any code. I'll keep this to avoid any bad surprise.
+        return self._file.close()  ## pragma: no cover
 
 
 class LineLoader(ShyamlSafeLoader):
