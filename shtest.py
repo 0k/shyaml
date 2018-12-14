@@ -308,6 +308,11 @@ def get_meta_commands(command):
 
 
 def shtest_runner(lines, regex_patterns):
+    def _lines(start_line_nb, stop_line_nb):
+        return (("lines %9s" % ("%s-%s" % (start_line_nb, stop_line_nb)))
+                if start_line_nb != stop_line_nb else
+                ("line %10s" % start_line_nb))
+
     for block_nb, block in enumerate(get_docshtest_blocks(lines)):
         lines = iter(block)
         command_block = ""
@@ -328,28 +333,20 @@ def shtest_runner(lines, regex_patterns):
             run_and_check(command_block, "".join(line for _, line in lines))
         except UnmatchedLine as e:
             print(format_failed_test(
-                "shtest %d - failure (line %s):"
-                % (block_nb + 1,
-                   ("%s-%s" % (start_line_nb, stop_line_nb))
-                   if start_line_nb != stop_line_nb else
-                   start_line_nb),
+                "#%04d - failure (%15s):"
+                % (block_nb + 1, _lines(start_line_nb, stop_line_nb)),
                 command_block,
                 e.args[0],
                 e.args[1]))
             exit(1)
         except Ignored as e:
-            print("shtest %d - ignored (line %s): %s"
+            print("#%04d - ignored (%15s): %s"
                   % (block_nb + 1,
-                     (("%s-%s" % (start_line_nb, stop_line_nb))
-                     if start_line_nb != stop_line_nb else
-                     start_line_nb),
+                     _lines(start_line_nb, stop_line_nb),
                      " ".join(e.args)))
         else:
-            print("shtest %d - success (line %s)"
-                  % (block_nb + 1,
-                     ("%s-%s" % (start_line_nb, stop_line_nb))
-                     if start_line_nb != stop_line_nb else
-                     start_line_nb))
+            print("#%04d - success (%15s)"
+                  % (block_nb + 1, _lines(start_line_nb, stop_line_nb)))
         sys.stdout.flush()
 
 
