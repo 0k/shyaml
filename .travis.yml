@@ -11,6 +11,7 @@ install:
   ## getting test deps
   - python setup.py develop easy_install "$(./autogen.sh --get-name)[test]"
 script:
+  - shyaml --version
   - bin/test
 after_success:
   - "bash <(curl -s https://codecov.io/bash)  #dovis: ignore"

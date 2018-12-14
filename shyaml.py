@@ -18,13 +18,20 @@ import textwrap
 import yaml
 
 
-if os.environ.get("FORCE_PYTHON_YAML_IMPLEMENTATION"):
-    from yaml import SafeLoader, SafeDumper
-else:
+__version__ = "%%version%%"   ## gets filled at release time by ./autogen.sh
+
+
+__with_libyaml__ = False
+if not os.environ.get("FORCE_PYTHON_YAML_IMPLEMENTATION"):
     try:
         from yaml import CSafeLoader as SafeLoader, CSafeDumper as SafeDumper
+        __with_libyaml__ = True
     except ImportError:  ## pragma: no cover
-        from yaml import SafeLoader, SafeDumper
+        pass
+
+if not __with_libyaml__:
+    from yaml import SafeLoader, SafeDumper  ## noqa: F811
+    __with_libyaml__ = False
 
 
 PY3 = sys.version_info[0] >= 3
@@ -41,6 +48,7 @@ USAGE = """\
 Usage:
 
     %(exname)s {-h|--help}
+    %(exname)s {-V|--version}
     %(exname)s [-y|--yaml] ACTION KEY [DEFAULT]
 """ % {"exname": EXNAME}
 
@@ -467,6 +475,20 @@ def type_name(value):
            type(value).__name__
 
 
+def get_version_info():
+    if yaml.__with_libyaml__:
+        import _yaml
+        libyaml_version = _yaml.get_version_string()
+    else:
+        libyaml_version = False
+    return ("unreleased" if __version__.startswith('%%') else __version__,
+            yaml.__version__,
+            libyaml_version,
+            __with_libyaml__,
+            sys.version.replace("\n", " "),
+            )
+
+
 def _parse_args(args, USAGE, HELP):
     opts = {}
 
@@ -495,6 +517,12 @@ def _parse_args(args, USAGE, HELP):
 
     if len(args) == 1 and args[0] in ("-h", "--help"):
         stdout(HELP)
+        exit(0)
+
+    if len(args) == 1 and args[0] in ("-V", "--version"):
+        version_info = get_version_info()
+        print("version: %s\nPyYAML: %s\nlibyaml available: %s\nlibyaml used: %s\nPython: %s"
+              % version_info)
         exit(0)
 
     opts["action"] = args[0]
@@ -648,6 +676,7 @@ def main(args):  ## pylint: disable=too-many-branches
     Usage:
 
         %(exname)s {-h|--help}
+        %(exname)s {-V|--version}
         %(exname)s [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
     """ % {"exname": EXNAME}
 

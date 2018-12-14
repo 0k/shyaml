@@ -694,6 +694,7 @@ A quick reminder of what is available will be printed when calling
     Usage:
 
         shyaml {-h|--help}
+        shyaml {-V|--version}
         shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
     <BLANKLINE>
 
@@ -709,6 +710,7 @@ The full help is available through the usage of the standard ``-h`` or
     Usage:
 
         shyaml {-h|--help}
+        shyaml {-V|--version}
         shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
 
 
@@ -795,8 +797,30 @@ Using invalid keywords will issue an error and the usage message::
     Usage:
 
         shyaml {-h|--help}
+        shyaml {-V|--version}
         shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
     <BLANKLINE>
+
+
+Version information
+-------------------
+
+You can get useful information (in case of a bug) or if you want to
+check if shyaml is using the ``libyaml`` C bindings, thanks to
+``shyaml --version`` (or ``-V``)::
+
+    # shyaml -V      ## Example of possible output
+    version: unreleased
+    PyYAML: 3.13
+    libyaml available: 0.1.6
+    libyaml used: True
+    Python: 2.7.8 (default, Oct 20 2014, 15:05:19)  [GCC 4.9.1]
+
+Note that you can force to use the python implementation even if
+``libyaml`` is available using ``FORCE_PYTHON_YAML_IMPLEMENTATION``::
+
+    $ FORCE_PYTHON_YAML_IMPLEMENTATION=1 shyaml --version | grep "^libyaml used:"
+    libyaml used: False
 
 
 Python API

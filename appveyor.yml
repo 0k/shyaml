@@ -41,6 +41,7 @@ before_test:
 
 ## Custom test script
 test_script:
+  - shyaml --version
   - bash bin/test
 
 after_test:
