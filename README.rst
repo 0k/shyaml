@@ -672,6 +672,17 @@ Note that all global tags will be resolved and simplified (as
       sea: green
 
 
+Empty documents
+---------------
+
+When provided with an empty document, ``shyaml`` will consider the
+document to hold a ``null`` value::
+
+    $ echo | shyaml get-value -y
+    null
+    ...
+
+
 Usage string
 ------------
 

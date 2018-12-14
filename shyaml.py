@@ -627,6 +627,8 @@ def do(stream, action, key, default=None, dump=yaml_dump,
         value = traverse(content, key, default=default)
         yield act(action, value, dump=dump)
 
+    ## In case of empty stream, we consider that it is equivalent
+    ## to one document having the ``null`` value.
     if at_least_one_content is False:
         value = traverse(None, key, default=default)
         yield act(action, value, dump=dump)
