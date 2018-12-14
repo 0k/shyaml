@@ -608,7 +608,7 @@ def act(action, value, dump=yaml_dump):
 
 def do(stream, action, key, default=None, dump=yaml_dump,
        loader=ShyamlSafeLoader):
-    """Return string representation of target value in stream YAML
+    """Return string representations of target value in stream YAML
 
     The key is used for traversal of the YAML structure to target
     the value that will be dumped.
@@ -622,7 +622,8 @@ def do(stream, action, key, default=None, dump=yaml_dump,
                     (default is ``yaml_dump``)
     :param loader:  PYYaml's *Loader subclass to parse YAML
                     (default is ShyamlSafeLoader)
-    :return:        string representation of targetted inner yaml value
+    :return:        generator of string representation of target value per
+                    YAML docs in the given stream.
 
     :raises ActionTypeError: when there's a type mismatch between the
         action selected and the type of the targetted value.
