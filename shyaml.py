@@ -497,19 +497,6 @@ def _parse_args(args, USAGE, HELP):
         stdout(HELP)
         exit(0)
 
-    ## XXXvlab: this validation is violating DRY, and probably
-    ## is a strong hint to move away from the current keyword querying
-    ## system as it has aspects of a language (namely the "-0" postfix).
-    if args[0] not in ["get-value",
-                       "get-values", "get-values-0",
-                       "get-type", "get-length",
-                       "keys", "keys-0",
-                       "values", "values-0",
-                       "key-values", "key-values-0"]:
-        stderr("Error: %r is not a valid action.\n"
-               % args[0])
-        die(USAGE, errlvl=1, prefix="")
-
     opts["action"] = args[0]
     opts["key"] = None if len(args) == 1 else args[1]
     opts["default"] = args[2] if len(args) > 2 else None
@@ -776,7 +763,8 @@ def main(args):  ## pylint: disable=too-many-branches
         else:
             die(str(e))
     except InvalidAction as e:
-        die("Invalid argument.\n%s" % USAGE)
+        die("'%s' is not a valid action.\n%s"
+            % (e.args[0], USAGE))
 
 
 def entrypoint():
