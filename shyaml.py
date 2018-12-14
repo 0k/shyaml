@@ -620,7 +620,7 @@ def do(stream, action, key, default=None, dump=yaml_dump,
                     traversing input yaml.  (default is ``None``)
     :param dump:    callable that will be given python objet to dump in yaml
                     (default is ``yaml_dump``)
-    :param loader:  PYYaml's *Loader subclass to parse YAML
+    :param loader:  PyYAML's *Loader subclass to parse YAML
                     (default is ShyamlSafeLoader)
     :return:        generator of string representation of target value per
                     YAML docs in the given stream.
