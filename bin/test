@@ -12,8 +12,13 @@ fi
 $python -m doctest shyaml.py || exit 1
 $python -m doctest README.rst || exit 1
 
-## We still need to force python yaml implementation because of
-## small discrepancy between outputs of the C implementation and
-## python implementation.
-FORCE_PYTHON_YAML_IMPLEMENTATION=1 \
-    ./shtest.py README.rst -r '#\bshyaml\b#'"$python"' ./shyaml.py#' || exit 1
+if python -c 'import yaml; exit(0 if yaml.__with_libyaml__ else 1)' 2>/dev/null; then
+    echo "PyYAML has C libyaml bindings available... Testing with libyaml"
+    export FORCE_PYTHON_YAML_IMPLEMENTATION=
+    time ./shtest.py README.rst -r '#\bshyaml\b#'"$python"' ./shyaml.py#' || exit 1
+else
+    echo "PyYAML has NOT any C libyaml bindings available..."
+fi
+echo "Testing with python implementation"
+export FORCE_PYTHON_YAML_IMPLEMENTATION=1
+time ./shtest.py README.rst -r '#\bshyaml\b#'"$python"' ./shyaml.py#' || exit 1

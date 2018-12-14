@@ -108,6 +108,7 @@ def udiff(a, b, fa="", fb=""):
 ## XXXvlab: code comes from ``kids.sh``
 ON_POSIX = 'posix' in sys.builtin_module_names
 
+__ENV__ = {}
 
 ## XXXvlab: code comes from ``kids.txt``
 ## Note that a quite equivalent function was added to textwrap in python 3.3
@@ -229,7 +230,24 @@ class UnmatchedLine(Exception):
         self.args = args
 
 
+class Ignored(Exception):
+
+    def __init__(self, *args):
+        self.args = args
+
+
 def run_and_check(command, expected_output):
+    global __ENV__
+    meta_commands = list(get_meta_commands(command))
+    for meta_command in meta_commands:
+        if meta_command[0] == "ignore-if":
+            if meta_command[1] in __ENV__:
+                raise Ignored(*meta_command)
+        if meta_command[0] == "ignore-if-not":
+            if meta_command[1] not in __ENV__:
+                raise Ignored(*meta_command)
+
+
     expected_output = expected_output.replace("<BLANKLINE>\n", "\n")
     orig_expected_output = expected_output
     output = ""
@@ -244,6 +262,13 @@ def run_and_check(command, expected_output):
     if not diff and len(chomp(expected_output)):
         diff = True
 
+    for meta_command in meta_commands:
+        if meta_command[0] == "if-success-set":
+            if not diff:
+                __ENV__[meta_command[1]] = 1
+                raise Ignored(*meta_command)
+            else:
+                raise Ignored(*meta_command)
     if diff:
         raise UnmatchedLine(output, orig_expected_output)
     return value == 0
@@ -269,6 +294,17 @@ def apply_regex(patterns, s):
     for p in patterns:
         s = re.sub(p[0], p[1], s)
     return s
+
+
+META_COMMAND_REGEX = '##? shtest: (?P<cmd>.*)$'
+
+
+def get_meta_commands(command):
+    for m in re.finditer(META_COMMAND_REGEX, command):
+        raw_cmd = m.groupdict()["cmd"]
+        cmd = raw_cmd.strip()
+        cmd = re.sub(' +', ' ', cmd)
+        yield cmd.split(' ')
 
 
 def shtest_runner(lines, regex_patterns):
@@ -301,11 +337,19 @@ def shtest_runner(lines, regex_patterns):
                 e.args[0],
                 e.args[1]))
             exit(1)
-        print("shtest %d - success (line %s)."
-              % (block_nb + 1,
-                 ("%s-%s" % (start_line_nb, stop_line_nb))
-                 if start_line_nb != stop_line_nb else
-                 start_line_nb))
+        except Ignored as e:
+            print("shtest %d - ignored (line %s): %s"
+                  % (block_nb + 1,
+                     (("%s-%s" % (start_line_nb, stop_line_nb))
+                     if start_line_nb != stop_line_nb else
+                     start_line_nb),
+                     " ".join(e.args)))
+        else:
+            print("shtest %d - success (line %s)"
+                  % (block_nb + 1,
+                     ("%s-%s" % (start_line_nb, stop_line_nb))
+                     if start_line_nb != stop_line_nb else
+                     start_line_nb))
         sys.stdout.flush()
 
 
