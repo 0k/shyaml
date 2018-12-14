@@ -3,9 +3,11 @@
 shtest_opts=()
 
 if [ -z "$DOVIS" -o "$PKG_COVERAGE" ]; then  ## with coverage
+    echo "With coverage support enabled"
     python="coverage run --include ./shyaml.py -a"
     shtest_opts+=("-r"  '#\bshyaml\b#'"$coverage"' shyaml#')
 else
+    echo "No coverage support"
     python=python
 fi
 
