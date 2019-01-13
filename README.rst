@@ -535,7 +535,7 @@ an error message will be printed::
     $ echo "a: 3" | shyaml get-value b
     Error: invalid path 'b', missing key 'b' in struct.
 
-You can emulate pre v0.3 behavior by specifying explicitely an empty
+You can emulate pre v0.3 behavior by specifying explicitly an empty
 string as third argument::
 
     $ echo "a: 3" | shyaml get-value b ''
@@ -603,7 +603,7 @@ when processing YAML coming out of shyaml, you should probably think
 about using the ``--yaml`` (or ``-y``) option to output only strict YAML.
 
 With the drawback that when you'll want to output string, you'll need to
-call a last time ``shyaml get-value`` to explicitely unquote the YAML.
+call a last time ``shyaml get-value`` to explicitly unquote the YAML.
 
 
 Object Tag
