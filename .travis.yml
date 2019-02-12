@@ -81,7 +81,7 @@ dist_check:
     EOF
   - |
     cd /tmp
-    echo PYTHONPATH: $PYTHONPATH
+    echo PYTHONPATH: "${PYTHONPATH:-<empty>}"
     python -c 'import shyaml'
   - |
     [ -e /tmp/not-installed ] || {
