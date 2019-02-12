@@ -5,11 +5,12 @@ docshtest_opts=()
 if [ -z "$DOVIS" -o "$PKG_COVERAGE" ]; then  ## with coverage
     echo "With coverage support enabled"
     python="coverage run --include ./shyaml.py -a"
-    docshtest_opts+=("-r"  '#\bshyaml\b#'"$coverage"' shyaml#')
 else
     echo "No coverage support"
     python=python
 fi
+
+docshtest_opts+=("-r" '#\bshyaml\b#'"$python"' ./shyaml.py#')
 
 $python -m doctest shyaml.py || exit 1
 $python -m doctest README.rst || exit 1
@@ -17,10 +18,10 @@ $python -m doctest README.rst || exit 1
 if python -c 'import yaml; exit(0 if yaml.__with_libyaml__ else 1)' 2>/dev/null; then
     echo "PyYAML has C libyaml bindings available... Testing with libyaml"
     export FORCE_PYTHON_YAML_IMPLEMENTATION=
-    time docshtest README.rst -r '#\bshyaml\b#'"$python"' ./shyaml.py#' || exit 1
+    time docshtest README.rst "${docshtest_opts[@]}" || exit 1
 else
     echo "PyYAML has NOT any C libyaml bindings available..."
 fi
 echo "Testing with python implementation"
 export FORCE_PYTHON_YAML_IMPLEMENTATION=1
-time docshtest README.rst -r '#\bshyaml\b#'"$python"' ./shyaml.py#' || exit 1
+time docshtest README.rst "${docshtest_opts[@]}" || exit 1
