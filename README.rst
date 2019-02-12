@@ -83,7 +83,7 @@ implementation but some examples will fail depending on the
 implementation. To make things clear, I'll use some annotation and you
 can yourself check which version you are using with::
 
-    $ shyaml -V | grep "^libyaml used:"  ## shtest: if-success-set LIBYAML
+    $ shyaml -V | grep "^libyaml used:"  ## docshtest: if-success-set LIBYAML
     libyaml used: True
 
 
@@ -153,7 +153,7 @@ Get sub YAML from a structure attribute::
 
     $ cat test.yaml | shyaml get-type subvalue
     struct
-    $ cat test.yaml | shyaml get-value subvalue  ## shtest: ignore-if LIBYAML
+    $ cat test.yaml | shyaml get-value subvalue  ## docshtest: ignore-if LIBYAML
     how-much: 1.1
     how-many: 2
     things:
@@ -629,7 +629,7 @@ allow parsing their internal structure.
 ``get-value`` with ``-y`` (see section Strict YAML) will give you the
 complete yaml tagged value::
 
-    $ shyaml get-value -y 0 < test.yaml  ## shtest: ignore-if LIBYAML
+    $ shyaml get-value -y 0 < test.yaml  ## docshtest: ignore-if LIBYAML
     !<tag:example.com,2000:app/foo> 'bar'
 
 
@@ -678,7 +678,7 @@ Note that all global tags will be resolved and simplified (as
     }
     EOF
 
-    $ shyaml get-value < test.yaml  ## shtest: ignore-if LIBYAML
+    $ shyaml get-value < test.yaml  ## docshtest: ignore-if LIBYAML
     sequence:
     - one
     - two
