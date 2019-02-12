@@ -26,6 +26,7 @@ dist_check:
   options:
     exclude:
       - ["v:3.6", "pkg:old"]  ## old version is breaking python 3.6 pkg_resources
+      - ["v:3.7", "pkg:old"]  ## old version is breaking python 3.7 pkg_resources
   tests:
   - label: install
     matrix:
