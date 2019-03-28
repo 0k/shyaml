@@ -108,13 +108,13 @@ Options:
 Examples:
 
      ## get last grocery
-     cat recipe.yaml       | %(exname)s get-value groceries.-1
+     %(exname)s get-value groceries.-1 < recipe.yaml
 
      ## get all words of my french dictionary
-     cat dictionaries.yaml | %(exname)s keys-0 french.dictionary
+     %(exname)s keys-0 french.dictionary < dictionaries.yaml
 
      ## get YAML config part of 'myhost'
-     cat hosts_config.yaml | %(exname)s get-value cfgs.myhost
+     %(exname)s get-value cfgs.myhost < hosts_config.yaml
 
 """ % {"exname": EXNAME, "usage": USAGE}
 
@@ -754,13 +754,13 @@ def main(args):  ## pylint: disable=too-many-branches
     Examples:
 
          ## get last grocery
-         cat recipe.yaml       | %(exname)s get-value groceries.-1
+         %(exname)s get-value groceries.-1 < recipe.yaml
 
          ## get all words of my french dictionary
-         cat dictionaries.yaml | %(exname)s keys-0 french.dictionary
+         %(exname)s keys-0 french.dictionary < dictionaries.yaml
 
          ## get YAML config part of 'myhost'
-         cat hosts_config.yaml | %(exname)s get-value cfgs.myhost
+         %(exname)s get-value cfgs.myhost < hosts_config.yaml
 
     """ % {"exname": EXNAME, "usage": USAGE}
 

@@ -118,31 +118,31 @@ General browsing struct and displaying simple values
 
 Simple query of simple attribute::
 
-    $ cat test.yaml | shyaml get-value name
+    $ shyaml get-value name < test.yaml
     MyName !!
 
 Query nested attributes by using '.' between key labels::
 
-    $ cat test.yaml | shyaml get-value subvalue.how-much
+    $ shyaml get-value subvalue.how-much < test.yaml
     1.1
 
 Get type of attributes::
 
-    $ cat test.yaml | shyaml get-type name
+    $ shyaml get-type name < test.yaml
     str
-    $ cat test.yaml | shyaml get-type subvalue.how-much
+    $ shyaml get-type subvalue.how-much < test.yaml
     float
 
 Get length of structures or sequences::
 
-    $ cat test.yaml | shyaml get-length subvalue
+    $ shyaml get-length subvalue < test.yaml
     5
-    $ cat test.yaml | shyaml get-length subvalue.things
+    $ shyaml get-length subvalue.things < test.yaml
     3
 
 But this won't work on other types::
 
-    $ cat test.yaml | shyaml get-length name
+    $ shyaml get-length name < test.yaml
     Error: get-length does not support 'str' type. Please provide or select a sequence or struct.
 
 
@@ -151,9 +151,9 @@ Parse structure
 
 Get sub YAML from a structure attribute::
 
-    $ cat test.yaml | shyaml get-type subvalue
+    $ shyaml get-type subvalue < test.yaml
     struct
-    $ cat test.yaml | shyaml get-value subvalue  ## docshtest: ignore-if LIBYAML
+    $ shyaml get-value subvalue < test.yaml  ## docshtest: ignore-if LIBYAML
     how-much: 1.1
     how-many: 2
     things:
@@ -171,7 +171,7 @@ Get sub YAML from a structure attribute::
 
 Iteration through keys only::
 
-    $ cat test.yaml | shyaml keys
+    $ shyaml keys < test.yaml
     name
     subvalue
     subvalue.how-much
@@ -180,7 +180,7 @@ Iteration through keys only::
 
 Iteration through keys only (``\0`` terminated strings)::
 
-    $ cat test.yaml | shyaml keys-0 subvalue | xargs -0 -n 1 echo "VALUE:"
+    $ shyaml keys-0 subvalue < test.yaml | xargs -0 -n 1 echo "VALUE:"
     VALUE: how-much
     VALUE: how-many
     VALUE: things
@@ -189,7 +189,7 @@ Iteration through keys only (``\0`` terminated strings)::
 
 Iteration through values only (``\0`` terminated string highly recommended)::
 
-    $ cat test.yaml | shyaml values-0 subvalue |
+    $ shyaml values-0 subvalue < test.yaml |
       while IFS='' read -r -d $'\0' value; do
           echo "RECEIVED: '$value'"
       done
@@ -213,7 +213,7 @@ Iteration through keys and values (``\0`` terminated string highly recommended):
             shift
         done
       } &&
-      cat test.yaml | shyaml key-values-0 subvalue |
+      shyaml key-values-0 subvalue < test.yaml |
       while read-0 key value; do
           echo "KEY: '$key'"
           echo "VALUE: '$value'"
@@ -249,11 +249,11 @@ which function support what you can look at the usage line)
 And, if you ask for keys, values, key-values on non struct like, you'll
 get an error::
 
-    $ cat test.yaml | shyaml keys name
+    $ shyaml keys name < test.yaml
     Error: keys does not support 'str' type. Please provide or select a struct.
-    $ cat test.yaml | shyaml values subvalue.how-many
+    $ shyaml values subvalue.how-many < test.yaml
     Error: values does not support 'int' type. Please provide or select a struct.
-    $ cat test.yaml | shyaml key-values subvalue.how-much
+    $ shyaml key-values subvalue.how-much < test.yaml
     Error: key-values does not support 'float' type. Please provide or select a struct.
 
 
@@ -262,29 +262,29 @@ Parse sequence
 
 Query a sequence with ``get-value``::
 
-    $ cat test.yaml | shyaml get-value subvalue.things
+    $ shyaml get-value subvalue.things < test.yaml
     - first
     - second
     - third
 
 And access individual elements with python-like indexing::
 
-    $ cat test.yaml | shyaml get-value subvalue.things.0
+    $ shyaml get-value subvalue.things.0 < test.yaml
     first
-    $ cat test.yaml | shyaml get-value subvalue.things.-1
+    $ shyaml get-value subvalue.things.-1 < test.yaml
     third
-    $ cat test.yaml | shyaml get-value subvalue.things.5
+    $ shyaml get-value subvalue.things.5 < test.yaml
     Error: invalid path 'subvalue.things.5', index 5 is out of range (3 elements in sequence).
 
 Note that this will work only with integer (preceded or not by a minus
 sign)::
 
-    $ cat test.yaml | shyaml get-value subvalue.things.foo
+    $ shyaml get-value subvalue.things.foo < test.yaml
     Error: invalid path 'subvalue.things.foo', non-integer index 'foo' provided on a sequence.
 
 More usefull, parse a list in one go with ``get-values``::
 
-    $ cat test.yaml | shyaml get-values subvalue.things
+    $ shyaml get-values subvalue.things < test.yaml
     first
     second
     third
@@ -297,7 +297,7 @@ which allows complete support of any type of values, including YAML.
 ``get-values`` outputs key and values for ``struct`` types and only
 values for ``sequence`` types::
 
-    $ cat test.yaml | shyaml get-values-0 subvalue |
+    $ shyaml get-values-0 subvalue < test.yaml |
       while IFS='' read -r -d '' key &&
             IFS='' read -r -d '' value; do
           echo "'$key' -> '$value'"
@@ -324,7 +324,7 @@ if they are complex, you can re-use ``shyaml`` on them to parse their content.
 
 Of course, ``get-values`` should only be called on sequence elements::
 
-    $ cat test.yaml | shyaml get-values name
+    $ shyaml get-values name < test.yaml
     Error: get-values does not support 'str' type. Please provide or select a sequence or struct.
 
 
@@ -462,17 +462,17 @@ Use and ``\\`` to access keys with ``\`` and ``\.`` to access keys
 with literal ``.`` in them. Just be mindful of shell escaping (example
 uses single quotes)::
 
-    $ cat test.yaml | shyaml get-value 'subvalue\.how-much'
+    $ shyaml get-value 'subvalue\.how-much' < test.yaml
     1.2
-    $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\more'
+    $ shyaml get-value 'subvalue\.how-much\\more' < test.yaml
     1.3
-    $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\.more' default
+    $ shyaml get-value 'subvalue\.how-much\\.more' default < test.yaml
     default
 
 This last one didn't escape correctly the last ``.``, this is the
 correct version::
 
-    $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\\.more' default
+    $ shyaml get-value 'subvalue\.how-much\\\.more' default < test.yaml
     1.4
 
 
@@ -491,9 +491,9 @@ it::
     "": wiz
     EOF
 
-    $ cat test.yaml | shyaml get-value empty-sub-key..
+    $ shyaml get-value empty-sub-key.. < test.yaml
     bar
-    $ cat test.yaml | shyaml get-value ''
+    $ shyaml get-value '' < test.yaml
     wiz
 
 Please notice that one empty string is different than no string at all::
@@ -504,10 +504,10 @@ Please notice that one empty string is different than no string at all::
        b: bar
     "x": wiz
     EOF
-    $ cat test.yaml | shyaml keys
+    $ shyaml keys < test.yaml
 
     x
-    $ cat test.yaml | shyaml keys ''
+    $ shyaml keys '' < test.yaml
     a
     b
 
@@ -795,13 +795,13 @@ The full help is available through the usage of the standard ``-h`` or
     Examples:
 
          ## get last grocery
-         cat recipe.yaml       | shyaml get-value groceries.-1
+         shyaml get-value groceries.-1 < recipe.yaml
 
          ## get all words of my french dictionary
-         cat dictionaries.yaml | shyaml keys-0 french.dictionary
+         shyaml keys-0 french.dictionary < dictionaries.yaml
 
          ## get YAML config part of 'myhost'
-         cat hosts_config.yaml | shyaml get-value cfgs.myhost
+         shyaml get-value cfgs.myhost < hosts_config.yaml
 
     <BLANKLINE>
 
