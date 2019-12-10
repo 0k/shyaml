@@ -17,7 +17,9 @@ SHYAML: YAML for the command line
    :target: https://codecov.io/gh/0k/shyaml/
    :alt: Test coverage
 
-
+.. image:: https://repl.it/badge/github/0k/shyaml
+   :target: https://repl.it/github/0k/shyaml
+   :alt: Repl.it
 
 Description
 ===========
