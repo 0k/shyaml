@@ -68,6 +68,10 @@ On macOS, you can also install the latest release version via `Homebrew
 Or to install the master branch::
 
     brew install shyaml --HEAD
+    
+On Arch Linux you can install via `yay`::
+   
+    yay --sync shyaml 
 
 
 Documentation
