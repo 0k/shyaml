@@ -363,7 +363,7 @@ So::
               break
           fi
           echo "---"
-    done | shyaml get-value -y ingests.0.id
+    done | shyaml -y get-value ingests.0.id
     tag-1
     ...
     ---
@@ -426,7 +426,7 @@ With the ``-L``, if we kill our shyaml process before the end::
           fi
           echo "---"
           sleep 10
-    done 2>/dev/null | shyaml get-value -L ingests.0.id & pid=$! ; sleep 2; kill $pid
+    done 2>/dev/null | shyaml -L get-value ingests.0.id & pid=$! ; sleep 2; kill $pid
     tag-1
 
 
@@ -443,7 +443,7 @@ which could help you chain shyaml calls::
           fi
           echo "---"
           sleep 0.2
-    done | shyaml get-value ingests.0 -L -y | shyaml get-value id | tr '\0' '\n'
+    done | shyaml -L -y get-value ingests.0 | shyaml get-value id | tr '\0' '\n'
     tag-1
     tag-2
     tag-3
@@ -629,7 +629,7 @@ allow parsing their internal structure.
 ``get-value`` with ``-y`` (see section Strict YAML) will give you the
 complete yaml tagged value::
 
-    $ shyaml get-value -y 0 < test.yaml  ## docshtest: ignore-if LIBYAML
+    $ shyaml -y get-value 0 < test.yaml  ## docshtest: ignore-if LIBYAML
     !<tag:example.com,2000:app/foo> 'bar'
 
 
@@ -656,7 +656,7 @@ Another example::
 
 And you can still traverse internal value::
 
-    $ shyaml get-value -y 2.start < test.yaml
+    $ shyaml -y get-value 2.start < test.yaml
     x: 73
     y: 129
 
@@ -693,7 +693,7 @@ Empty documents
 When provided with an empty document, ``shyaml`` will consider the
 document to hold a ``null`` value::
 
-    $ echo | shyaml get-value -y
+    $ echo | shyaml -y get-value
     null
     ...
 
@@ -704,30 +704,26 @@ Usage string
 A quick reminder of what is available will be printed when calling
 ``shyaml`` without any argument::
 
-    $ shyaml
-    Error: Bad number of arguments.
-    Usage:
+  $ shyaml
+  usage:
 
         shyaml {-h|--help}
         shyaml {-V|--version}
         shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
-    <BLANKLINE>
 
 The full help is available through the usage of the standard ``-h`` or
 ``-help``::
 
 
     $ shyaml --help
-
-    Parses and output chosen subpart or values from YAML input.
-    It reads YAML in stdin and will output on stdout it's return value.
-
-    Usage:
+    usage: 
 
         shyaml {-h|--help}
         shyaml {-V|--version}
         shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
 
+    Parses and output chosen subpart or values from YAML input.
+    It reads YAML in stdin and will output on stdout it's return value.
 
     Options:
 
@@ -803,13 +799,24 @@ The full help is available through the usage of the standard ``-h`` or
          ## get YAML config part of 'myhost'
          cat hosts_config.yaml | shyaml get-value cfgs.myhost
 
-    <BLANKLINE>
+    positional arguments:
+      action
+      key
+      default
+
+    optional arguments:
+      -h, --help         show this help message and exit
+      -y, --yaml
+      -q, --quiet
+      -L, --line-buffer
+      -V, --version      show program's version number and exit
+
 
 Using invalid keywords will issue an error and the usage message::
 
     $ shyaml get-foo
     Error: 'get-foo' is not a valid action.
-    Usage:
+
 
         shyaml {-h|--help}
         shyaml {-V|--version}
