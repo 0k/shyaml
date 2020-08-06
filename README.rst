@@ -121,9 +121,15 @@ Simple query of simple attribute::
     $ cat test.yaml | shyaml get-value name
     MyName !!
 
+    $ shyaml --file test.yaml get-value name
+    MyName !!
+
 Query nested attributes by using '.' between key labels::
 
     $ cat test.yaml | shyaml get-value subvalue.how-much
+    1.1
+
+    $ shyaml --file test.yaml get-value subvalue.how-much
     1.1
 
 Get type of attributes::
@@ -133,11 +139,21 @@ Get type of attributes::
     $ cat test.yaml | shyaml get-type subvalue.how-much
     float
 
+    $ shyaml --file test.yaml get-type name
+    str
+    $ shyaml --file test.yaml get-type subvalue.how-much
+    float
+
 Get length of structures or sequences::
 
     $ cat test.yaml | shyaml get-length subvalue
     5
     $ cat test.yaml | shyaml get-length subvalue.things
+    3
+
+    $ shyaml --file test.yaml get-length subvalue
+    5
+    $ shyaml --file test.yaml get-length subvalue.things
     3
 
 But this won't work on other types::
@@ -178,9 +194,23 @@ Iteration through keys only::
     subvalue.how-much\more
     subvalue.how-much\.more
 
+    $ shyaml --file test.yaml keys
+    name
+    subvalue
+    subvalue.how-much
+    subvalue.how-much\more
+    subvalue.how-much\.more
+
 Iteration through keys only (``\0`` terminated strings)::
 
     $ cat test.yaml | shyaml keys-0 subvalue | xargs -0 -n 1 echo "VALUE:"
+    VALUE: how-much
+    VALUE: how-many
+    VALUE: things
+    VALUE: maintainer
+    VALUE: description
+
+    $ shyaml --file test.yaml keys-0 subvalue | xargs -0 -n 1 echo "VALUE:"
     VALUE: how-much
     VALUE: how-many
     VALUE: things
@@ -267,6 +297,11 @@ Query a sequence with ``get-value``::
     - second
     - third
 
+    $ shyaml --file test.yaml get-value subvalue.things
+    - first
+    - second
+    - third
+
 And access individual elements with python-like indexing::
 
     $ cat test.yaml | shyaml get-value subvalue.things.0
@@ -285,6 +320,11 @@ sign)::
 More usefull, parse a list in one go with ``get-values``::
 
     $ cat test.yaml | shyaml get-values subvalue.things
+    first
+    second
+    third
+
+    $ shyaml --file test.yaml get-values subvalue.things
     first
     second
     third
@@ -469,10 +509,21 @@ uses single quotes)::
     $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\.more' default
     default
 
+    $ shyaml --file test.yaml get-value 'subvalue\.how-much'
+    1.2
+    $ shyaml --file test.yaml get-value 'subvalue\.how-much\\more'
+    1.3
+    $ shyaml --file test.yaml get-value 'subvalue\.how-much\\.more' default
+    default
+
 This last one didn't escape correctly the last ``.``, this is the
 correct version::
 
     $ cat test.yaml | shyaml get-value 'subvalue\.how-much\\\.more' default
+    1.4
+
+
+    $ shyaml --file test.yaml get-value 'subvalue\.how-much\\\.more' default
     1.4
 
 
@@ -582,9 +633,20 @@ For ``shyaml`` version before ``0.4.0``::
     b: 3
     c: 2
 
+    # shyaml --file test.yaml get-value mapping
+    a: 1
+    b: 3
+    c: 2
+
 For ``shyaml`` version including and after ``0.4.0``::
 
     $ shyaml get-value mapping < test.yaml
+    a: 1
+    c: 2
+    b: 3
+
+
+    $ shyaml --file test.yaml get-value mapping
     a: 1
     c: 2
     b: 3
@@ -709,7 +771,7 @@ A quick reminder of what is available will be printed when calling
 
         shyaml {-h|--help}
         shyaml {-V|--version}
-        shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
+        shyaml [-y|--yaml] [-q|--quiet] [--file FILE] ACTION KEY [DEFAULT]
 
 The full help is available through the usage of the standard ``-h`` or
 ``-help``::
@@ -720,7 +782,7 @@ The full help is available through the usage of the standard ``-h`` or
 
         shyaml {-h|--help}
         shyaml {-V|--version}
-        shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
+        shyaml [-y|--yaml] [-q|--quiet] [--file FILE] ACTION KEY [DEFAULT]
 
     Parses and output chosen subpart or values from YAML input.
     It reads YAML in stdin and will output on stdout it's return value.
@@ -740,6 +802,10 @@ The full help is available through the usage of the standard ``-h`` or
                   mode will prevent the writing of an error message on
                   standard error.
                   (Default: no quiet mode)
+
+        --file FILE
+                  Read from FILE
+                  (Default: read from stdin)
 
         -L, --line-buffer
                   Force parsing stdin line by line allowing to process
@@ -806,6 +872,7 @@ The full help is available through the usage of the standard ``-h`` or
 
     optional arguments:
       -h, --help         show this help message and exit
+      --file FILE
       -y, --yaml
       -q, --quiet
       -L, --line-buffer
@@ -820,7 +887,7 @@ Using invalid keywords will issue an error and the usage message::
 
         shyaml {-h|--help}
         shyaml {-V|--version}
-        shyaml [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
+        shyaml [-y|--yaml] [-q|--quiet] [--file FILE] ACTION KEY [DEFAULT]
     <BLANKLINE>
 
 

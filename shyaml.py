@@ -14,7 +14,6 @@ import argparse
 import sys
 import os.path
 import re
-import textwrap
 
 import yaml
 
@@ -493,12 +492,31 @@ def get_version_info():
 
 
 def _parse_args(args, USAGE, HELP):
+    class FileInputAction(argparse.Action):
+        def __init__(self, option_strings, dest, default=sys.stdin,
+                     required=False, help=None, metavar="FILE"):
+            super(FileInputAction, self).__init__(
+                option_strings=option_strings,
+                dest=dest,
+                default=default,
+                required=required,
+                help=help,
+                metavar=metavar
+            )
+
+        def __call__(self, parser, namespace, values, option_string=None):
+            if values == "-":
+                setattr(namespace, self.dest, sys.stdin)
+            else:
+                setattr(namespace, self.dest, open(values))
+
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         usage=USAGE, description=HELP)
     parser.add_argument("action")
     parser.add_argument("key", nargs=argparse.OPTIONAL)
     parser.add_argument("default", nargs=argparse.OPTIONAL)
+    parser.add_argument("--file", dest="stream", action=FileInputAction)
     parser.add_argument("-y", "--yaml", dest="dump", action="store_const",
                         default=magic_dump, const=yaml_dump)
     parser.add_argument("-q", "--quiet", action="store_true")
@@ -661,7 +679,7 @@ def main(args):  ## pylint: disable=too-many-branches
 
     %(exname)s {-h|--help}
     %(exname)s {-V|--version}
-    %(exname)s [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
+    %(exname)s [-y|--yaml] [-q|--quiet] [--file FILE] ACTION KEY [DEFAULT]
 """ % {"exname": EXNAME}
 
     HELP = """
@@ -683,6 +701,10 @@ Options:
               mode will prevent the writing of an error message on
               standard error.
               (Default: no quiet mode)
+
+    --file FILE
+              Read from FILE
+              (Default: read from stdin)
 
     -L, --line-buffer
               Force parsing stdin line by line allowing to process
@@ -749,7 +771,7 @@ Examples:
 
     try:
         first = True
-        for output in do(stream=sys.stdin, **opts):
+        for output in do(**opts):
             if first:
                 first = False
             else:
@@ -770,11 +792,14 @@ Examples:
     except (InvalidPath, ActionTypeError) as e:
         if quiet:
             exit(1)
+            opts["stream"].close()
         else:
             die(str(e))
+            opts["stream"].close()
     except InvalidAction as e:
         die("'%s' is not a valid action.\n%s"
             % (e.args[0], USAGE))
+        opts["stream"].close()
 
 
 def entrypoint():
