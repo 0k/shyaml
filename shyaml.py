@@ -10,10 +10,10 @@ YAML for command line.
 
 from __future__ import print_function
 
+import argparse
 import sys
 import os.path
 import re
-import textwrap
 
 import yaml
 
@@ -492,44 +492,45 @@ def get_version_info():
 
 
 def _parse_args(args, USAGE, HELP):
-    opts = {}
+    class FileInputAction(argparse.Action):
+        def __init__(self, option_strings, dest, default=sys.stdin,
+                     required=False, help=None, metavar="FILE"):
+            super(FileInputAction, self).__init__(
+                option_strings=option_strings,
+                dest=dest,
+                default=default,
+                required=required,
+                help=help,
+                metavar=metavar
+            )
 
-    opts["dump"] = magic_dump
-    for arg in ["-y", "--yaml"]:
-        if arg in args:
-            args.remove(arg)
-            opts["dump"] = yaml_dump
+        def __call__(self, parser, namespace, values, option_string=None):
+            if values == "-":
+                setattr(namespace, self.dest, sys.stdin)
+            else:
+                setattr(namespace, self.dest, open(values))
 
-    opts["quiet"] = False
-    for arg in ["-q", "--quiet"]:
-        if arg in args:
-            args.remove(arg)
-            opts["quiet"] = True
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        usage=USAGE, description=HELP)
+    parser.add_argument("action")
+    parser.add_argument("key", nargs=argparse.OPTIONAL)
+    parser.add_argument("default", nargs=argparse.OPTIONAL)
+    parser.add_argument("--file", dest="stream", action=FileInputAction)
+    parser.add_argument("-y", "--yaml", dest="dump", action="store_const",
+                        default=magic_dump, const=yaml_dump)
+    parser.add_argument("-q", "--quiet", action="store_true")
+    parser.add_argument("-L", "--line-buffer", dest="loader",
+                        action="store_const", default=ShyamlSafeLoader,
+                        const=LineLoader)
+    parser.add_argument("-V", "--version", action="version",
+                        version="version: %s\nPyYAML: %s\n"
+                                "libyaml available: %s\nlibyaml used: %s\n"
+                                "Python: %s" % get_version_info())
 
-    for arg in ["-L", "--line-buffer"]:
-        if arg not in args:
-            continue
-        args.remove(arg)
+    parsed_args = parser.parse_args(args)
 
-        opts["loader"] = LineLoader
-
-    if len(args) == 0:
-        stderr("Error: Bad number of arguments.\n")
-        die(USAGE, errlvl=1, prefix="")
-
-    if len(args) == 1 and args[0] in ("-h", "--help"):
-        stdout(HELP)
-        exit(0)
-
-    if len(args) == 1 and args[0] in ("-V", "--version"):
-        version_info = get_version_info()
-        print("version: %s\nPyYAML: %s\nlibyaml available: %s\nlibyaml used: %s\nPython: %s"
-              % version_info)
-        exit(0)
-
-    opts["action"] = args[0]
-    opts["key"] = None if len(args) == 1 else args[1]
-    opts["default"] = args[2] if len(args) > 2 else None
+    opts = vars(parsed_args)
 
     return opts
 
@@ -674,105 +675,103 @@ def main(args):  ## pylint: disable=too-many-branches
             EXNAME = EXNAME[:-len(ext)]
             break
 
-    USAGE = """\
-    Usage:
+    USAGE = """
 
-        %(exname)s {-h|--help}
-        %(exname)s {-V|--version}
-        %(exname)s [-y|--yaml] [-q|--quiet] ACTION KEY [DEFAULT]
-    """ % {"exname": EXNAME}
+    %(exname)s {-h|--help}
+    %(exname)s {-V|--version}
+    %(exname)s [-y|--yaml] [-q|--quiet] [--file FILE] ACTION KEY [DEFAULT]
+""" % {"exname": EXNAME}
 
     HELP = """
-    Parses and output chosen subpart or values from YAML input.
-    It reads YAML in stdin and will output on stdout it's return value.
+Parses and output chosen subpart or values from YAML input.
+It reads YAML in stdin and will output on stdout it's return value.
 
-%(usage)s
+Options:
 
-    Options:
+    -y, --yaml
+              Output only YAML safe value, more precisely, even
+              literal values will be YAML quoted. This behavior
+              is required if you want to output YAML subparts and
+              further process it. If you know you have are dealing
+              with safe literal value, then you don't need this.
+              (Default: no safe YAML output)
 
-        -y, --yaml
-                  Output only YAML safe value, more precisely, even
-                  literal values will be YAML quoted. This behavior
-                  is required if you want to output YAML subparts and
-                  further process it. If you know you have are dealing
-                  with safe literal value, then you don't need this.
-                  (Default: no safe YAML output)
+    -q, --quiet
+              In case KEY value queried is an invalid path, quiet
+              mode will prevent the writing of an error message on
+              standard error.
+              (Default: no quiet mode)
 
-        -q, --quiet
-                  In case KEY value queried is an invalid path, quiet
-                  mode will prevent the writing of an error message on
-                  standard error.
-                  (Default: no quiet mode)
+    --file FILE
+              Read from FILE
+              (Default: read from stdin)
 
-        -L, --line-buffer
-                  Force parsing stdin line by line allowing to process
-                  streamed YAML as it is fed instead of buffering
-                  input and treating several YAML streamed document
-                  at once. This is likely to have some small performance
-                  hit if you have a huge stream of YAML document, but
-                  then you probably don't really care about the
-                  line-buffering.
-                  (Default: no line buffering)
+    -L, --line-buffer
+              Force parsing stdin line by line allowing to process
+              streamed YAML as it is fed instead of buffering
+              input and treating several YAML streamed document
+              at once. This is likely to have some small performance
+              hit if you have a huge stream of YAML document, but
+              then you probably don't really care about the
+              line-buffering.
+              (Default: no line buffering)
 
-        ACTION    Depending on the type of data you've targetted
-                  thanks to the KEY, ACTION can be:
+    ACTION    Depending on the type of data you've targetted
+              thanks to the KEY, ACTION can be:
 
-                  These ACTIONs applies to any YAML type:
+              These ACTIONs applies to any YAML type:
 
-                    get-type          ## returns a short string
-                    get-value         ## returns YAML
+                get-type          ## returns a short string
+                get-value         ## returns YAML
 
-                  These ACTIONs applies to 'sequence' and 'struct' YAML type:
+              These ACTIONs applies to 'sequence' and 'struct' YAML type:
 
-                    get-values{,-0}   ## returns list of YAML
-                    get-length        ## returns an integer
+                get-values{,-0}   ## returns list of YAML
+                get-length        ## returns an integer
 
-                  These ACTION applies to 'struct' YAML type:
+              These ACTION applies to 'struct' YAML type:
 
-                    keys{,-0}         ## returns list of YAML
-                    values{,-0}       ## returns list of YAML
-                    key-values,{,-0}  ## returns list of YAML
+                keys{,-0}         ## returns list of YAML
+                values{,-0}       ## returns list of YAML
+                key-values,{,-0}  ## returns list of YAML
 
-                  Note that any value returned is returned on stdout, and
-                  when returning ``list of YAML``, it'll be separated by
-                  a newline or ``NUL`` char depending of you've used the
-                  ``-0`` suffixed ACTION.
+              Note that any value returned is returned on stdout, and
+              when returning ``list of YAML``, it'll be separated by
+              a newline or ``NUL`` char depending of you've used the
+              ``-0`` suffixed ACTION.
 
-        KEY       Identifier to browse and target subvalues into YAML
-                  structure. Use ``.`` to parse a subvalue. If you need
-                  to use a literal ``.`` or ``\\``, use ``\\`` to quote it.
+    KEY       Identifier to browse and target subvalues into YAML
+              structure. Use ``.`` to parse a subvalue. If you need
+              to use a literal ``.`` or ``\\``, use ``\\`` to quote it.
 
-                  Use struct keyword to browse ``struct`` YAML data and use
-                  integers to browse ``sequence`` YAML data.
+              Use struct keyword to browse ``struct`` YAML data and use
+              integers to browse ``sequence`` YAML data.
 
-        DEFAULT   if not provided and given KEY do not match any value in
-                  the provided YAML, then DEFAULT will be returned. If no
-                  default is provided and the KEY do not match any value
-                  in the provided YAML, %(exname)s will fail with an error
-                  message.
+    DEFAULT   if not provided and given KEY do not match any value in
+              the provided YAML, then DEFAULT will be returned. If no
+              default is provided and the KEY do not match any value
+              in the provided YAML, %(exname)s will fail with an error
+              message.
 
-    Examples:
+Examples:
 
-         ## get last grocery
-         cat recipe.yaml       | %(exname)s get-value groceries.-1
+     ## get last grocery
+     cat recipe.yaml       | %(exname)s get-value groceries.-1
 
-         ## get all words of my french dictionary
-         cat dictionaries.yaml | %(exname)s keys-0 french.dictionary
+     ## get all words of my french dictionary
+     cat dictionaries.yaml | %(exname)s keys-0 french.dictionary
 
-         ## get YAML config part of 'myhost'
-         cat hosts_config.yaml | %(exname)s get-value cfgs.myhost
+     ## get YAML config part of 'myhost'
+     cat hosts_config.yaml | %(exname)s get-value cfgs.myhost
 
-    """ % {"exname": EXNAME, "usage": USAGE}
-
-    USAGE = textwrap.dedent(USAGE)
-    HELP = textwrap.dedent(HELP)
+""" % {"exname": EXNAME}
 
     opts = _parse_args(args, USAGE, HELP)
     quiet = opts.pop("quiet")
 
     try:
         first = True
-        for output in do(stream=sys.stdin, **opts):
+        for output in do(**opts):
             if first:
                 first = False
             else:
@@ -793,11 +792,14 @@ def main(args):  ## pylint: disable=too-many-branches
     except (InvalidPath, ActionTypeError) as e:
         if quiet:
             exit(1)
+            opts["stream"].close()
         else:
             die(str(e))
+            opts["stream"].close()
     except InvalidAction as e:
         die("'%s' is not a valid action.\n%s"
             % (e.args[0], USAGE))
+        opts["stream"].close()
 
 
 def entrypoint():
