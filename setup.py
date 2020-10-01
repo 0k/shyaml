@@ -16,8 +16,8 @@ from setuptools import setup
 ##
 
 if "%%short-version%%".startswith("%%"):
-    import os.path
-    import sys
+    import os.path           //import packages of os 
+    import sys                //import packages of system
     WIN32 = sys.platform == 'win32'
     autogen = os.path.join(".", "autogen.sh")
     if not os.path.exists(autogen):
