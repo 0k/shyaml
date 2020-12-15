@@ -6,7 +6,7 @@ SHYAML: YAML for the command line
     :target: https://pypi.python.org/pypi/shyaml
 
 .. image:: https://img.shields.io/travis/0k/shyaml/master.svg?style=flat
-   :target: https://travis-ci.org/0k/shyaml/
+   :target: https://travis-ci.com/github/0k/shyaml/
    :alt: Travis CI build status
 
 .. image:: https://img.shields.io/appveyor/ci/vaab/shyaml.svg
