@@ -9,7 +9,7 @@ install:
   - if [ -e requirements.txt ]; then pip install -r requirements.txt ; fi
   - if [ -z "$DOVIS" -o "$PKG_COVERAGE" ]; then pip install coverage; fi
   ## getting test deps
-  - python setup.py develop easy_install "$(./autogen.sh --get-name)[test]"
+  - pip install -e .[test]
 script:
   - shyaml --version
   - bin/test

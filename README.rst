@@ -47,9 +47,9 @@ available on the PyPI. So you should be able to run::
     pip install shyaml
 
 If you have downloaded the GIT sources, then you could add install
-the current version via traditional::
+the current version via::
 
-    python setup.py install
+    pip install .
 
 And if you don't have the GIT sources but would like to get the latest
 master or branch from github, you could also::
