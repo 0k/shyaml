@@ -903,7 +903,7 @@ would show you how to deal with your issue.
 License
 =======
 
-Copyright (c) 2019 Valentin Lab.
+Copyright (c) 2020 Valentin Lab.
 
 Licensed under the `BSD License`_.
 
