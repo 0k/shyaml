@@ -386,10 +386,8 @@ YAML::
               break
           fi
           echo "---"
-    done | shyaml keys ingests.0 | tr '\0' '&'
+    done | shyaml keys ingests.0 >/dev/null
     Error: Source YAML is multi-document, which doesn't support any other action than get-type, get-length, get-value
-    data
-    id
 
 You'll probably notice also, that output seems buffered. The previous
 content is displayed as a whole only at the end. If you need a
