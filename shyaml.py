@@ -14,6 +14,7 @@ import sys
 import os.path
 import re
 import textwrap
+import locale
 
 import yaml
 
@@ -443,6 +444,10 @@ def die(msg, errlvl=1, prefix="Error: "):
 
 SIMPLE_TYPES = (str if PY3 else basestring, int, float, type(None))
 COMPLEX_TYPES = (list, dict)
+if PY3:
+    STRING_TYPES = (str, )
+else:
+    STRING_TYPES = (unicode, str)
 
 ## these are not composite values
 ACTION_SUPPORTING_STREAMING=["get-type", "get-length", "get-value"]
@@ -455,7 +460,7 @@ def magic_dump(value):
     instance). But complex type are written in a YAML useable format.
 
     """
-    return str(value) if isinstance(value, SIMPLE_TYPES) \
+    return "%s" % value if isinstance(value, SIMPLE_TYPES) \
         else yaml_dump(value)
 
 
@@ -474,6 +479,7 @@ def type_name(value):
     return type(value).__name__ if isinstance(value, EncapsulatedNode) else \
            "struct" if isinstance(value, dict) else \
            "sequence" if isinstance(value, (tuple, list)) else \
+           "str" if isinstance(value, STRING_TYPES) else \
            type(value).__name__
 
 
@@ -585,7 +591,7 @@ def act(action, value, dump=yaml_dump):
     termination = "\0" if action.endswith("-0") else "\n"
 
     if action == "get-value":
-        return str(dump(value))
+        return "%s" % dump(value)
     elif action in ("get-values", "get-values-0"):
         if isinstance(value, dict):
             return "".join("".join((dump(k), termination,
@@ -612,7 +618,7 @@ def act(action, value, dump=yaml_dump):
             method = value.keys if action.startswith("keys") else \
                 value.items if action.startswith("key-values") else \
                 value.values
-            output = (lambda x: termination.join(str(dump(e)) for e in x)) \
+            output = (lambda x: termination.join("%s" % dump(e) for e in x)) \
                 if action.startswith("key-values") else \
                 dump
             return "".join("".join((str(output(k)), termination)) for k in method())
@@ -787,7 +793,7 @@ def main(args):  ## pylint: disable=too-many-branches
                 if opts.get("loader") is LineLoader:
                     sys.stdout.flush()
 
-            print(output, end="")
+            safe_print(output)
             if opts.get("loader") is LineLoader:
                 sys.stdout.flush()
     except (InvalidPath, ActionTypeError) as e:
@@ -798,6 +804,27 @@ def main(args):  ## pylint: disable=too-many-branches
     except InvalidAction as e:
         die("'%s' is not a valid action.\n%s"
             % (e.args[0], USAGE))
+##
+## Safe print
+##
+
+## Note that locale.getpreferredencoding() does NOT follow
+## PYTHONIOENCODING by default, but ``sys.stdout.encoding`` does. In
+## PY2, ``sys.stdout.encoding`` without PYTHONIOENCODING set does not
+## get any values set in subshells.  However, if _preferred_encoding
+## is not set to utf-8, it leads to encoding errors.
+_preferred_encoding = os.environ.get("PYTHONIOENCODING") or \
+                      locale.getpreferredencoding()
+
+def safe_print(content):
+    if not PY3:
+        if isinstance(content, unicode):
+            content = content.encode(_preferred_encoding)
+
+    print(content, end='')
+    sys.stdout.flush()
+
+
 
 
 def entrypoint():

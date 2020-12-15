@@ -94,7 +94,7 @@ Usage
 define here a common YAML input for the next examples::
 
     $ cat <<EOF > test.yaml
-    name: "MyName !!"
+    name: "MyName !! héhé"  ## using encoding, and support comments !
     subvalue:
         how-much: 1.1
         how-many: 2
@@ -119,7 +119,7 @@ General browsing struct and displaying simple values
 Simple query of simple attribute::
 
     $ cat test.yaml | shyaml get-value name
-    MyName !!
+    MyName !! héhé
 
 Query nested attributes by using '.' between key labels::
 
@@ -363,7 +363,7 @@ So::
               break
           fi
           echo "---"
-    done | shyaml get-value -y ingests.0.id
+    done | shyaml get-value -y ingests.0.id  ## docshtest: ignore-if LIBYAML
     tag-1
     ...
     ---
@@ -691,7 +691,7 @@ Empty documents
 When provided with an empty document, ``shyaml`` will consider the
 document to hold a ``null`` value::
 
-    $ echo | shyaml get-value -y
+    $ echo | shyaml get-value -y  ## docshtest: ignore-if LIBYAML
     null
     ...
 

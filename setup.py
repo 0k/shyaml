@@ -56,7 +56,7 @@ if "%%short-version%%".startswith("%%"):
 setup(
     setup_requires=['d2to1'],
     extras_require={'test': [
-        "docshtest==0.0.2",
+        "docshtest==0.0.3",
         ]},
     d2to1=True
 )
