@@ -825,8 +825,6 @@ def safe_print(content):
     sys.stdout.flush()
 
 
-
-
 def entrypoint():
     sys.exit(main(sys.argv[1:]))
 
