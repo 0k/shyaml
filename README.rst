@@ -19,6 +19,43 @@ SHYAML: YAML for the command line
 
 
 
+.. note::
+
+   **Consider switching to** `shyaml-rs <https://github.com/0k/shyaml-rs>`_,
+   **a Rust rewrite of shyaml.**
+
+   This Python version remains available and is not archived, but it is
+   in a lethargic state: no new features are planned, and maintenance is
+   limited to critical fixes. The Rust version is where active
+   development happens.
+
+   ``shyaml-rs`` is designed as a **drop-in replacement** — your
+   existing shell scripts should work without modification. Reasons to
+   switch:
+
+   - **Performance**: 14–42× faster than the Python version (2 ms vs
+     92 ms on a 7 KB file), with no startup overhead from a Python
+     interpreter.
+   - **Modern YAML 1.2 support**: Uses `libfyaml
+     <https://github.com/pantoniou/libfyaml>`_ instead of the
+     aging libyaml (last released in 2020, YAML 1.1 only). No
+     artificial limits such as libyaml's 1024-character key cap.
+   - **Write capabilities**: ``set-value``, ``del``, and ``apply``
+     (YAML merging) are new actions not available in this Python
+     version.
+   - **Single static binary**: No Python runtime needed. Download and
+     run.
+
+   Install via ``cargo install shyaml-rs`` or grab a static Linux
+   binary from the `releases page
+   <https://github.com/0k/shyaml-rs/releases>`_.
+
+   If you encounter any compatibility difference between the two
+   versions, please `open an issue
+   <https://github.com/0k/shyaml-rs/issues>`_ — feedback is welcome
+   and helps ensure a smooth transition.
+
+
 Description
 ===========
 
@@ -871,7 +908,7 @@ prototype.
 Contributing
 ============
 
-Any suggestion or issue is welcome. Push request are very welcome,
+Any suggestions or issues are welcome. Push requests are very welcome,
 please check out the guidelines.
 
 
@@ -897,7 +934,7 @@ it'll take less time if you follow the following guidelines:
 
 If you have some questions about guidelines which is not answered here,
 please check the current ``git log``, you might find previous commit that
-would show you how to deal with your issue.
+shows you how to deal with your issue.
 
 
 License
