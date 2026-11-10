@@ -671,7 +671,22 @@ def do(stream, action, key, default=None, dump=yaml_dump,
 
 
 def main(args):  ## pylint: disable=too-many-branches
-    """Entrypoint of the whole commandline application"""
+    """Entrypoint of the whole commandline application
+
+    Invalid YAML on stdin is reported as a clean error (exit 1),
+    not an unhandled traceback:
+
+        >>> import sys
+        >>> from io import StringIO
+        >>> _saved_stdin = sys.stdin
+        >>> sys.stdin = StringIO('{{{')
+        >>> main(['get-value', 'a'])
+        Traceback (most recent call last):
+        ...
+        SystemExit: 1
+        >>> sys.stdin = _saved_stdin
+
+    """
 
     EXNAME = os.path.basename(__file__ if WIN32 else sys.argv[0])
 
@@ -796,7 +811,7 @@ def main(args):  ## pylint: disable=too-many-branches
             safe_print(output)
             if opts.get("loader") is LineLoader:
                 sys.stdout.flush()
-    except (InvalidPath, ActionTypeError) as e:
+    except (InvalidPath, ActionTypeError, yaml.YAMLError) as e:
         if quiet:
             exit(1)
         else:
